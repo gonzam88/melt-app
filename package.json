@@ -1,0 +1,47 @@
+{
+    "name": "melt",
+    "version": "1.0.0",
+    "description": "A polargraph controller",
+    "main": "main.js",
+    "scripts": {
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder",
+        "postinstall": "electron-builder install-app-deps",
+        "start": "electron .",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gonzam88/melt-app.git"
+    },
+    "author": "gonza moiguer",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/gonzam88/melt-app/issues"
+    },
+    "homepage": "https://github.com/gonzam88/melt-app#readme",
+    "devDependencies": {
+        "electron": "^3.0.10",
+        "electron-builder": "^20.38.2",
+        "electron-packager": "^12.2.0",
+        "electron-rebuild": "^1.8.2"
+    },
+    "dependencies": {
+        "@types/serialport": "^7.0.0",
+        "ace-builds": "^1.4.2",
+        "fabric": "^2.4.4",
+        "jquery": "^3.1.1",
+        "p5": "^0.7.2",
+        "semantic-ui-css": "^2.4.1",
+        "serialport": "^7.1.0",
+        "victor": "^1.1.0"
+    },
+    "build": {
+        "appId": "your.id",
+        "mac": {
+            "category": "your.app.category.type"
+        },
+        "productName": "Melt",
+        "copyright": "Copyright © 2018 Gonzalo Moiguer"
+    }
+}

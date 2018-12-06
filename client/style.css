@@ -276,6 +276,7 @@ h2 .content, .ui.header .sub.header{
 	padding: 1.2em 0.78571429em 1.2em;
 	border-radius: 0px 4px 4px 4px;
 	margin-right: 2px !important;
+    margin-top: 3px;
 }
 .run-code-updown{
 	padding:4px !important;
@@ -310,6 +311,12 @@ h2 .content, .ui.header .sub.header{
 #editor-container{
      display: none;
      margin-bottom: 10px;
+}
+#editor-segment{
+    height: calc(100vh - 250px);
+    margin-top: 10px;
+    padding: 0;
+    border: none
 }
 
 #keyboard-control-container .labeled {

@@ -305,6 +305,7 @@ function FabricInit(){
 
   canvas.on('path:created', function(e){
     // canvas.isDrawingMode = false;
+    showNotificationOnFinish = true;
     var myPath = e.path;
       // console.log(myPath);
   	let points = myPath.path;
@@ -1210,6 +1211,7 @@ function OnMachineReady(){
 
 var externalQueueLength = 0;
 var queueUiLength = 51;
+var showNotificationOnFinish = false;
 
 function CheckQueue(){
 	// console.log("checking queue");
@@ -1226,30 +1228,19 @@ function CheckQueue(){
         if(machineQueue.length == 0){
             // Queue & Batch have just finished
             UpdateBatchPercent();
-            let myNotification = new Notification('Drawing Finished', {
-                body: 'Queue is empty again'
-            })
-            myNotification.onclick = function () {
-                win.show();
+            if(showNotificationOnFinish){
+                let myNotification = new Notification('Drawing Finished', {
+                    body: 'Queue is empty again'
+                })
+                myNotification.onclick = function () {
+                    win.show();
+                }
+                showNotificationOnFinish = false;
             }
+
         }
 
-    }else{
-		// The queue is free!!
-		// Lets give it something to do
-		// if(isRunningCode){
-		// 	if(isRunningCodeForever){
-		// 		EvalCode();
-		// 	}else{
-		// 		if(remainingCodeRepetitions == 0){
-		// 			EndedDrawingCode();
-		// 		}else{
-		// 			remainingCodeRepetitions--;
-		// 			EvalCode();
-		// 		}
-		// 	}
-		// }
-	}
+    }
   }
   FormatBatchElapsed();
   if(canvasNeedsRender){
@@ -1475,6 +1466,7 @@ function CheckCode(){
 }
 
 function EvalCode(){
+    showNotificationOnFinish = true;
 	eval(codeStr); // Actually interprets string as javascript
 	console.log('code evaluated');
 	dom.get("#remaining-repetitions span").html(remainingCodeRepetitions);

@@ -32,6 +32,7 @@
         "fabric": "^2.4.4",
         "jquery": "^3.1.1",
         "p5": "^0.7.2",
+        "remote": "^0.2.6",
         "semantic-ui-css": "^2.4.1",
         "serialport": "^7.1.0",
         "victor": "^1.1.0"

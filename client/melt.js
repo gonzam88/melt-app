@@ -1,61 +1,22 @@
-var SerialPort = require("serialport");
+const remote = require('electron').remote;
+const win = remote.getCurrentWindow();
+
+const SerialPort = require("serialport");
 const Readline = require('@serialport/parser-readline')
 const Delimiter = require('@serialport/parser-delimiter')
 
 
-// var SerialPort = serialport.SerialPort;
 
-SerialPort.list(function (err, ports) {
-  ports.forEach(function(port) {
-    console.log(port.comName);
-    console.log(port.pnpId);
-    console.log(port.manufacturer);
-  });
-});
-// port.write("C26,END\n")
 
-const port = new SerialPort("/dev/tty.usbmodem14C1", {
-  baudRate: 57600
-});
-// const parser = port.pipe(new Readline());
-const parser = port.pipe(new Readline({ delimiter: '\r\n' }))
-parser.on('data>', console.log)
-// port.pipe(parser);
-// var currentString = serial.readStringUntil("\r\n")
-port.write('main screen turn on', function(err) {
-  if (err) {
-    return console.log('Error on write: ', err.message)
-  }
-  console.log('message written')
-})
 
-// Open errors will be emitted as an error event
-port.on('error', function(err) {
-  console.log('Error: ', err.message)
-})
-
-// Read data that is available but keep the stream in "paused mode"
-port.on('readable', function () {
-  console.log('Data:', port.read())
-})
-
-parser.on('data', function(incoming) {
-	//{"type":"Buffer","data":[10]}
-	console.log(incoming);
-});
-
+console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 
 /*
-	https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-responses
+https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-responses
 */
-var serial; // variable to hold an instance of the serialport library
-var portName = '/dev/cu.usbmodem641'; // fill in your serial port name here
-var serialOptions = {
-  baudrate: 57600
-};
-var wsConnected = false;
 
-//var machineWidthRevs = 1500; machineHeightRevs = 1200;
+var port, parser;
+
 var machineWidthSteps, machineHeightSteps;
 var mmPerRev, stepsPerRev;
 var stepMultiplier;
@@ -155,17 +116,7 @@ function p(txt){
 
 
 function MeltInit(){
-    // SERIAL Start
-    serial = new p5.SerialPort();
-    // Let's list the ports available
-    // var portlist = serial.list();
-    serial.on('connected', socketConnected);
-    serial.on('list', socketReceivedPortList);
-    serial.on('data', SerialReceive);
-    serial.on('error', socketError);
-    serial.on('open', socketOpened);
-
-    setTimeout(CheckWsConnection, 1000); // 1 second after we start, we check wether a connection has been established to WebSocket. otherwise we show an alert
+    ListSerialPorts();
 
     // Worker setup to allow
     var doWork
@@ -312,7 +263,7 @@ function FabricInit(){
         DeactivateToggles();
   	  }else if( isSettingNewPenPosition ){
   		  SetNextPenPositionPixels(mouseVector.x, mouseVector.y);
-        console.log("Setting at ", mouseVector.x, mouseVector.y);
+          // console.log("Setting at ", mouseVector.x, mouseVector.y);
   		  // isSettingNewPenPosition = false;
   	  }
     }
@@ -422,8 +373,6 @@ function UiInit(){
 
     currContent = newContent;
   })
-
-
       $('.ui.menu')
       .on('click', '.item', function() {
         if(!$(this).hasClass('dropdown')) {
@@ -435,20 +384,19 @@ function UiInit(){
       });
 
   dom.get("#serial_connections").on("click", ".button", function(){
-    if(serial.isConnected()){
-      serial.close();
+    if(port !== undefined && port.isOpen){
+      port.close();
     }
-    DisableWorkspace();
+
     statusElement.html(statusErrorIcon);
 
-    portName = $(this).data("connectto");
-    console.log("Connectando a ", portName);
-    serial.open(portName, serialOptions);
-    dom.get("#connected_to").html(portName);
+    portPath = $(this).data("connectto");
+    console.log("Connectando a ", portPath);
+    SerialConnectTo(portPath);
   })
 
   dom.get(".serial_reconnect").click(function(){
-    socketReceivedPortList(serial.list());
+    ListSerialPorts();
   })
 
   $('.mypopup').popup();
@@ -895,7 +843,7 @@ function UpdatePositionMetadata(vec){
 // *********************
 
 function SerialSend(cmd){
-  serial.write(cmd + '\n');
+  port.write(cmd + '\n');
   statusElement.html(statusWorkingIcon);
   isMachineReady = false;
   WriteConsole(cmd)
@@ -903,11 +851,7 @@ function SerialSend(cmd){
 
 var lastReceivedString = "";
 
-function SerialReceive() {
-  var currentString = serial.readStringUntil("\r\n");
-  // var currentString = serial.readString();
-  // console.log(currentString);
-  if(currentString == "") return;
+function SerialReceive(currentString) {
 
   // Parse response in cases where data is space separated
   var responseWords = currentString.split(" ");
@@ -916,6 +860,8 @@ function SerialReceive() {
       // Serial connection worked
       statusElement.html(statusSuccessIcon);
       EnableWorkspace();
+      $('.ui.basic.modal').modal('hide');
+      console.log(`Succesfully connected ✏️ to serial`);
       SerialSend("C26,END");
     break;
 
@@ -1033,41 +979,60 @@ function WriteConsole(txt, received = false){
   }
 }
 
-// Got the list of ports
-function socketReceivedPortList(thelist) {
-  $('.ui.basic.modal').modal('show');
-  // theList is an array of their names
-  dom.get("#serial_connections").html("");
-  let serialConnectionsContent = "";
-  for (var i = 0; i < thelist.length; i++) {
-    // Display in the console
-    var icon = "microchip";
-    if(thelist[i].includes("Bluetooth")){
-      icon = "bluetooth";
-    }
-    serialConnectionsContent += '<div class="ui green basic cancel inverted button" data-connectto="'+ thelist[i] +'"><i class="'+icon+' icon"></i> '+thelist[i]+'</div>';
-  }
-  dom.get("#serial_connections").html(serialConnectionsContent);
+var arduinoAutoConnect = true;
+function ListSerialPorts() {
+    // List all serial ports
+    SerialPort.list(function (err, ports) {
+        $('.ui.basic.modal').modal('show');
+        dom.get("#serial_connections").html("");
+        let serialConnectionsContent = "";
+        let portsToAnArduino = [];
+
+        ports.forEach(function(port) {
+            var icon = "microchip";
+            if(port.comName.includes("Bluetooth")){
+              icon = "bluetooth";
+            }
+
+            let manufacturer = "";
+            if( port.manufacturer !== undefined && port.manufacturer.includes("Arduino")){
+                    portsToAnArduino.push(port.comName);
+                    icon = '';
+            }
+
+            let iconEle;
+            if(icon == ''){
+                iconEle = `<img class="arduinoIcon" src="images/arduino-icon.svg"/> `;
+            }else{
+                iconEle = `<i class="${icon} large icon"></i>`;
+            }
+            serialConnectionsContent += `<div class="ui green basic cancel inverted button" data-connectto="${port.comName}">${iconEle} ${port.comName}</div>`;
+        });
+        if(arduinoAutoConnect){
+            if(portsToAnArduino.length == 1){
+                // If theres only one arduino, automatically connect. Else show list
+                SerialConnectTo(portsToAnArduino[0]);
+                dom.get("#serial_connections").html(`Arduino detected. Connecting to ${portsToAnArduino[0]}`);
+            }else{
+                dom.get("#serial_connections").html(serialConnectionsContent);
+            }
+        }else{
+            dom.get("#serial_connections").html(serialConnectionsContent);
+        }
+
+
+
+    });
 }
 
-function socketConnected() {
-	wsConnected = true;
-	dom.get("#ws-alert").hide();
-}
-function CheckWsConnection(){
-	if(!wsConnected){
-		dom.get("#ws-alert").slideDown();
-	}
-}
-// Connected to our serial device
-function socketOpened() {
-  console.log("Serial Port is open!");
-}
+function SerialConnectTo(path){
+    port = new SerialPort("/dev/tty.usbmodem14C1", {
+      baudRate: 57600
+    });
+    parser = port.pipe(new Readline({ delimiter: '\r\n' }))
 
-// Ut oh, here is an error, let's log it
-function socketError(theerror) {
-	statusElement.html(statusErrorIcon);
-    console.log(theerror);
+    parser.on('data', SerialReceive)
+    dom.get("#connected_to").html(path);
 }
 
 
@@ -1258,6 +1223,17 @@ function CheckQueue(){
             dom.get("#queue-last-item").hide();
         }
 
+        if(machineQueue.length == 0){
+            // Queue & Batch have just finished
+            UpdateBatchPercent();
+            let myNotification = new Notification('Drawing Finished', {
+                body: 'Queue is empty again'
+            })
+            myNotification.onclick = function () {
+                win.show();
+            }
+        }
+
     }else{
 		// The queue is free!!
 		// Lets give it something to do
@@ -1307,14 +1283,18 @@ function UpdateBatchPercent(){
   // TODO: show elapsed time
   let newBatchPercent;
 
-  if(batchTotal > 0){
+  if(machineQueue.length == 0){
+      newBatchPercent = 0;
+      win.setProgressBar(-1)
+  }else if (batchTotal > 0) {
     newBatchPercent = batchDone / batchTotal * 100;
-  }else{
-    newBatchPercent = 100;
   }
+
+
   if( newBatchPercent != batchPercent){
       // By only doing this on different values I assure a proper animation on the progress bar
       dom.get("#queue-progress").progress({percent: batchPercent});
+      win.setProgressBar(batchPercent/100); // mac dock progressbar
       batchPercent = newBatchPercent;
   }
 

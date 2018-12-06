@@ -328,3 +328,14 @@ h2 .content, .ui.header .sub.header{
 .activeToggle{
     background-color: #AE9AAA !important;
 }
+
+#serial_connections .button{
+    height: 40px;
+    overflow: hidden;
+}
+.arduinoIcon{
+    opacity: .8;
+    height: 20px;
+    vertical-align: middle;
+    margin: 0 .42857143em 0 -.21428571em;
+}

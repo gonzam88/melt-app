@@ -9,6 +9,8 @@ body {
 
 .headerContainer{
   padding: 10px;
+  position: relative;
+    top: 12px;
 }
 h2 .icon{
   color: #BF6169;

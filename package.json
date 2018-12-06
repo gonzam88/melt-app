@@ -1,6 +1,6 @@
 {
-    "name": "melt",
-    "version": "1.0.0",
+    "name": "Melt",
+    "version": "0.0.1",
     "description": "A polargraph controller",
     "main": "main.js",
     "scripts": {
@@ -8,7 +8,8 @@
         "dist": "electron-builder",
         "postinstall": "electron-builder install-app-deps",
         "start": "electron .",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "yarn dist"
     },
     "repository": {
         "type": "git",
@@ -38,7 +39,7 @@
         "victor": "^1.1.0"
     },
     "build": {
-        "appId": "your.id",
+        "appId": "com.electron.melt",
         "mac": {
             "category": "your.app.category.type"
         },

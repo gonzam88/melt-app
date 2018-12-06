@@ -9,6 +9,7 @@ function createWindow () {
   win = new BrowserWindow({
       width: 800,
       height: 600,
+      frame: false,
       title: "Melt",
 
    })
@@ -56,6 +57,3 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-// var serialserver = require('p5.serialserver');
-// serialserver.start();
-// console.log("p5.serialserver is running");

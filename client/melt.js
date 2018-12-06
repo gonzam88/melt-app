@@ -1,22 +1,16 @@
-const remote = require('electron').remote;
-const win = remote.getCurrentWindow();
-
-const SerialPort = require("serialport");
-const Readline = require('@serialport/parser-readline')
-const Delimiter = require('@serialport/parser-delimiter')
-
-
-
-
-
-console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
-
 /*
 https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-responses
 */
+const remote = require('electron').remote;
+const win = remote.getCurrentWindow();
+
+require('electron-titlebar');
+const SerialPort = require("serialport");
+const Readline = require('@serialport/parser-readline')
+
+console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 
 var port, parser;
-
 var machineWidthSteps, machineHeightSteps;
 var mmPerRev, stepsPerRev;
 var stepMultiplier;
@@ -149,9 +143,6 @@ function FabricInit(){
   canvas.isDrawingMode = false;
 
   window.addEventListener('resize', resizeCanvas, false);
-  // resize on init
-  // resizeCanvas();
-  // DrawGrid();
 
   // Define some fabric.js elements
   motorLineRight = new fabric.Line([rightMotorPositionPixels.x, rightMotorPositionPixels.y, 0, 0], {
@@ -406,10 +397,6 @@ function UiInit(){
   	isSettingPenPos = true;
   })
 
-  // dom.get("#control-pen-position").click(function(){
-  // 	isSettingNewPenPosition = true;
-  // })
-
   dom.get("#pen-lift").click(function(){
     melt.PenUp(true); // True sets to now instead of queue
   })
@@ -442,7 +429,6 @@ function UiInit(){
   });
 
   dom.get("#run-code-button").click(function(){
-      // if(!isRunningCode)
       CheckCode();
   })
 
@@ -499,7 +485,6 @@ function UiInit(){
         dom.get("#editor-container").hide();
     }
 
-
     // Custom toggle callback implementation
     dom.get(".myToggle").click(function(){
         if(currToggleEl){
@@ -537,8 +522,6 @@ function UiInit(){
     dom.get("#tools-free-draw").on("toggleDeselect", function(){
         canvas.isDrawingMode = true;
     })
-
-
 
     dom.get("#control-pen-position").on("toggleSelect", function(){
         isSettingNewPenPosition = true;
@@ -671,7 +654,6 @@ function resizeCanvas() {
 // ui stuff ends here (mostly)
 
 
-
 var editor, session, scriptCode;
 function codePluginInit(){
     // flask = new CodeFlask('#myFlask', { language: 'js', lineNumbers: true });
@@ -707,36 +689,34 @@ function codePluginInit(){
 
 // Machine functions
 function debug(){
-
     mmPerRev = 32;
     stepsPerRev = 200;
     stepMultiplier = 1;
     mmPerStep = .16;
     stepsPerMM = 6.25;
     SetMachineDimensionsMM(1200, 800);
-
 }
 
 function SetMachineDimensionsMM(_w, _h){
-	machineWidthMM = _w;
-	machineHeightMM = _h;
+    machineWidthMM = _w;
+    machineHeightMM = _h;
 
-	machineWidthSteps = machineWidthMM * stepsPerMM;
-	machineHeightMMSteps = machineHeightMM * stepsPerMM;
+    machineWidthSteps = machineWidthMM * stepsPerMM;
+    machineHeightMMSteps = machineHeightMM * stepsPerMM;
 
-	leftMotorPositionSteps = new Victor(0,0);
-	rightMotorPositionSteps = new Victor(0, machineWidthSteps);
+    leftMotorPositionSteps = new Victor(0,0);
+    rightMotorPositionSteps = new Victor(0, machineWidthSteps);
 
-	rightMotorPositionPixels.x = machineWidthMM * mmToPxFactor;
+    rightMotorPositionPixels.x = machineWidthMM * mmToPxFactor;
 
-	motorRightCircle.left = rightMotorPositionPixels.x;
-	motorLineRight.set({'x1': motorRightCircle.left, 'y1': 0})
+    motorRightCircle.left = rightMotorPositionPixels.x;
+    motorLineRight.set({'x1': motorRightCircle.left, 'y1': 0})
 
-	machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
+    machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
 
 
-	pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
-	stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
+    pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
+    stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
 
     canvasNeedsRender = true;
     resizeCanvas();
@@ -1027,7 +1007,7 @@ function ListSerialPorts() {
 }
 
 function SerialConnectTo(path){
-    port = new SerialPort("/dev/tty.usbmodem14C1", {
+    port = new SerialPort(path, {
       baudRate: 57600
     });
     parser = port.pipe(new Readline({ delimiter: '\r\n' }))
@@ -1035,7 +1015,6 @@ function SerialConnectTo(path){
     parser.on('data', SerialReceive)
     dom.get("#connected_to").html(path);
 }
-
 
 // *********************
 //

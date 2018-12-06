@@ -346,3 +346,8 @@ h2 .content, .ui.header .sub.header{
     vertical-align: middle;
     margin: 0 .42857143em 0 -.21428571em;
 }
+
+#electron-titlebar {
+    z-index: 9999;
+    top: 10px !important;
+}

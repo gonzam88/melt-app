@@ -34,7 +34,7 @@ Prerequisites: Node, npm, yarn (if you want to build)
 
 ## Hack
 
-The app structure is very basic. It´s a website wrapped by Electron. `main.js` starts the process, it´s mostly electron stuff. `client/index.html` holds the DOM elements. `client/melt.js` is where everything happens. The code is pretty straight forward, go ahead and happy hacking
+The app structure is very basic. It´s a website wrapped by Electron. `main.js` starts the process, it´s mostly electron stuff. `client/index.html` holds the DOM elements. `client/melt.js` is where everything happens. The code is pretty straight forward, go ahead and have a happy hacking
 
 ## Use
 

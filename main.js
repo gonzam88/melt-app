@@ -1,10 +1,20 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow,  Menu, MenuItem } = require('electron')
+
+const menu = new Menu();
+menu.append(new MenuItem({
+  label: 'Consola',
+  accelerator: 'CmdOrCtrl+P',
+  click: () => {
+
+   }
+}))
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
+var win, contents;
 
 function createWindow () {
-    console.log(process.platform);
   // Create the browser window.
   var configuration;
   if(process.platform == "darwin"){
@@ -23,7 +33,8 @@ function createWindow () {
       }
   }
 
-  var win = new BrowserWindow(configuration);
+  win = new BrowserWindow(configuration);
+  contents = win.webContents;
   win.maximize();
   win.show();
 
@@ -42,7 +53,44 @@ function createWindow () {
   })
 
 
+  // Other code removed for brevity
+
+  var menu = Menu.buildFromTemplate([
+      {
+          label: 'Menu',
+          submenu: [
+              {label:'Toggle Inspector',
+              accelerator: 'CmdOrCtrl+I',
+              click() {
+                  ToggleDevTools();
+              }
+                },
+              {label:'Quit',
+              click() {
+                        app.quit()
+                    }
+                }
+          ]
+      }
+  ])
+  Menu.setApplicationMenu(menu);
+
 }
+
+
+function ToggleDevTools(){
+    if(contents.isDevToolsOpened()){
+        contents.closeDevTools();
+    }else{
+        contents.openDevTools();
+    }
+}
+
+app.on('will-quit', () => {
+
+  // Unregister all shortcuts.
+  // globalShortcut.unregisterAll()
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -61,9 +109,9 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow()
-  }
+  // if (win === null) {
+  //   createWindow()
+  // }
 })
 
 // In this file you can include the rest of your app's specific main process

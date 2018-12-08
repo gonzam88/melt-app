@@ -960,7 +960,7 @@ function WriteConsole(txt, received = false){
   }
 }
 
-var arduinoAutoConnect = true;
+var arduinoAutoConnect = false;
 function ListSerialPorts() {
     // List all serial ports
     SerialPort.list(function (err, ports) {
@@ -977,8 +977,8 @@ function ListSerialPorts() {
 
             let manufacturer = "";
             if( port.manufacturer !== undefined && port.manufacturer.includes("Arduino")){
-                    portsToAnArduino.push(port.comName);
-                    icon = '';
+                portsToAnArduino.push(port.comName);
+                icon = '';
             }
 
             let iconEle;
@@ -988,6 +988,12 @@ function ListSerialPorts() {
                 iconEle = `<i class="${icon} large icon"></i>`;
             }
             serialConnectionsContent += `<div class="ui green basic cancel inverted button" data-connectto="${port.comName}">${iconEle} ${port.comName}</div>`;
+
+            // serialconnect defaults to tty.* connections
+            // So I manually create a cu.* option
+            let newPort = port.comName.replace("/dev/tty.","/dev/cu.");
+            serialConnectionsContent += `<div class="ui green basic cancel inverted button" data-connectto="${newPort}">${iconEle} ${newPort}</div><br>`;
+
         });
         if(arduinoAutoConnect){
             if(portsToAnArduino.length == 1){

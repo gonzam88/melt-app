@@ -353,3 +353,7 @@ h2 .content, .ui.header .sub.header{
     z-index: 9999;
     top: 10px !important;
 }
+
+.headerContainer, .status{
+    user-select: none; /* Standard */
+}

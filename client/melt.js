@@ -10,9 +10,7 @@ const Readline = require('@serialport/parser-readline')
 
 const { app } = require('electron');
 const settings = require('electron-settings');
-
-
-
+var Mousetrap = require('mousetrap');
 
 console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 
@@ -101,19 +99,10 @@ function map(x, in_min, in_max, out_min, out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-function debug(){
-    mmPerRev = 32;
-    stepsPerRev = 200;
-    stepMultiplier = 1;
-    mmPerStep = .16;
-    stepsPerMM = 6.25;
-    SetMachineDimensionsMM(1200, 800);
-}
 function p(txt){
     // just a lazy shortcut
     console.log(txt);
 }
-
 
 function MeltInit(){
     let myport = settings.get('serial-path')
@@ -338,7 +327,7 @@ function UiInit(){
   // Input console
   dom.get("#consoleInput").keyup(function(e){
     let code = e.which; // recommended to use e.which, it's normalized across browsers
-    if(code==13||code==176){
+    if(code == 13||code == 176){
       // 13 es el Enter comun. 176 es el enter del keypad
       e.preventDefault();
       let msg = dom.get("#consoleInput").val();
@@ -487,6 +476,10 @@ function UiInit(){
         EnterEditorMode();
     })
 
+    dom.get("#uploadMachineConfig").click(function(){
+		UploadMachineConfig();
+	})
+
     function EnterEditorMode(){
         dom.get("#editor-container").slideDown();
         dom.get("#tools-buttons").hide();
@@ -552,57 +545,63 @@ function UiInit(){
         dom.get("#keyboard-control-container").slideUp();
     })
 
+
+
+
+    // Keyboard shortcuts
+    Mousetrap.bind('up', function() {
+        if(!isKeyboardControlling || !isMachineReady) return
+        SetNextPenPositionPixels(penPositionPixels.x, penPositionPixels.y - keyboardControlDeltaPx, true);
+     });
+
+     Mousetrap.bind('right', function() {
+         if(!isKeyboardControlling || !isMachineReady) return
+         SetNextPenPositionPixels(penPositionPixels.x + keyboardControlDeltaPx, penPositionPixels.y, true);
+     });
+
+     Mousetrap.bind('down', function() {
+         if(!isKeyboardControlling || !isMachineReady) return
+         SetNextPenPositionPixels(penPositionPixels.x, penPositionPixels.y + keyboardControlDeltaPx, true);
+     });
+
+     Mousetrap.bind('left', function() {
+         if(!isKeyboardControlling || !isMachineReady) return
+         SetNextPenPositionPixels(penPositionPixels.x - keyboardControlDeltaPx, penPositionPixels.y, true); // setting last param to true skips the queue
+     });
+
+     Mousetrap.bind('space', function() {
+         if(!isKeyboardControlling || !isMachineReady) return
+         melt.TogglePen();
+     });
+
+} // ui elements init
+
+function initKeyboardControl(){
+    console.log("init keyboard cont")
     dom.get("#keyboard-input-mm").val( keyboardControlDeltaPx * pxToMMFactor );
     dom.get("#keyboard-input-px").val( keyboardControlDeltaPx);
     dom.get("#keyboard-input-steps").val( keyboardControlDeltaPx * stepsPerMM);
 
+    dom.get("#keyboard-input-mm").change(function(){
+        let val = $(this).val();
+        keyboardControlDeltaPx = val / pxToMMFactor;
+        dom.get("#keyboard-input-px").val( keyboardControlDeltaPx);
+        dom.get("#keyboard-input-steps").val( keyboardControlDeltaPx * stepsPerMM);
+    })
 
-    // Keyboard movement
-    document.onkeydown = checkKeycode;
-    function checkKeycode(event) {
-        if(!isKeyboardControlling || !isMachineReady) return
-        // handling Internet Explorer stupidity with window.event
-        // @see http://stackoverflow.com/a/3985882/517705
-        var keyDownEvent = event || window.event,
-            keycode = (keyDownEvent.which) ? keyDownEvent.which : keyDownEvent.keyCode;
-        var LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, SPACEBAR = 32;
+    dom.get("#keyboard-input-px").change(function(){
+        keyboardControlDeltaPx = $(this).val();
+        dom.get("#keyboard-input-mm").val( keyboardControlDeltaPx * pxToMMFactor );
+        dom.get("#keyboard-input-steps").val( keyboardControlDeltaPx * stepsPerMM);
+    })
 
-        let interaction = false;
-
-        switch (keycode) {
-
-            case LEFT:
-                SetNextPenPositionPixels(penPositionPixels.x - keyboardControlDeltaPx, penPositionPixels.y, true); // setting last param to true skips the queue
-                interaction = true;
-                break;
-            case UP:
-                SetNextPenPositionPixels(penPositionPixels.x, penPositionPixels.y - keyboardControlDeltaPx, true);
-                interaction = true;
-                break;
-            case RIGHT:
-                SetNextPenPositionPixels(penPositionPixels.x + keyboardControlDeltaPx, penPositionPixels.y, true);
-                interaction = true;
-                break;
-            case DOWN:
-                SetNextPenPositionPixels(penPositionPixels.x, penPositionPixels.y + keyboardControlDeltaPx, true);
-                interaction = true;
-                break;
-            case SPACEBAR:
-                melt.TogglePen();
-                interaction = true;
-            break;
-        }
-        if(interaction){
-            keyDownEvent.stopPropagation();
-            keyDownEvent.preventDefault();
-        }
-    }
-
-	dom.get("#uploadMachineConfig").click(function(){
-		UploadMachineConfig();
-	})
-
-} // ui elements init
+    dom.get("#keyboard-input-steps").change(function(){
+        let val = $(this).val();
+        keyboardControlDeltaPx = val / stepsPerMM;
+        dom.get("#keyboard-input-mm").val( keyboardControlDeltaPx * pxToMMFactor );
+        dom.get("#keyboard-input-px").val( keyboardControlDeltaPx);
+    })
+}
 
 function DeactivateToggles(){
     if(currToggleEl){
@@ -720,12 +719,9 @@ function SetMachineDimensionsMM(_w, _h){
     rightMotorPositionSteps = new Victor(0, machineWidthSteps);
 
     rightMotorPositionPixels.x = machineWidthMM * mmToPxFactor;
-
     motorRightCircle.left = rightMotorPositionPixels.x;
     motorLineRight.set({'x1': motorRightCircle.left, 'y1': 0})
-
     machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
-
 
     pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
     stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
@@ -851,13 +847,7 @@ function SerialReceive(currentString) {
   switch(responseWords[0]){
     case 'POLARGRAPH':
       // Serial connection worked
-      statusElement.html(statusSuccessIcon);
-      EnableWorkspace();
-      $('.ui.basic.modal').modal('hide');
-      SerialSend("C26,END");
-      console.log(`Succesfully connected ✏️ to Polargraph`);
-      settings.set('serial-path', serialPathConnected); // save in local config
-
+      onPolargraphConnect();
     break;
 
     case 'READY':
@@ -936,6 +926,7 @@ function SerialReceive(currentString) {
       dom.get("#inputMaxSpeed").val(motorMaxSpeed);
       dom.get("#inputAcceleration").val(motorAcceleration);
 
+      SettingsDownloadFinished();
     break;
 	}
   // end parse response
@@ -1074,6 +1065,7 @@ function SetMachineDimensionsMM(_w, _h){
 	stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
 
     canvasNeedsRender = true;
+
     resizeCanvas();
     DrawGrid();
 }
@@ -1211,6 +1203,10 @@ function OnMachineReady(){
     }
 }
 
+function SettingsDownloadFinished(){
+    initKeyboardControl();
+}
+
 
 // *******
 //
@@ -1332,7 +1328,15 @@ function FormatBatchElapsed(){
   dom.get("#elapsed-time").html(msg);
 }
 
+function onPolargraphConnect(){
+    statusElement.html(statusSuccessIcon);
+    EnableWorkspace();
+    $('.ui.basic.modal').modal('hide');
+    SerialSend("C26,END");
+    console.log(`Succesfully connected ✏️ to Polargraph`);
+    settings.set('serial-path', serialPathConnected); // save in local config
 
+}
 
 
 

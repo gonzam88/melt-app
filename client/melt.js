@@ -51,6 +51,7 @@ var keyboardControlDeltaPx  = 2.5;
 var penPositionPixels = new Victor(0,0);
 var nextPenPosition = new Victor(0,0);
 var gondolaCircle;
+var homeSquare;
 
 var leftMotorPositionPixels = new Victor(0,0);
 var rightMotorPositionPixels = new Victor(0,0);
@@ -60,6 +61,8 @@ var currContent;
 
 var melt;
 var queueEmptyContent;
+
+var homePos;
 
 // Caching jquery selectors
 // source: https://ttmm.io/tech/selector-caching-jquery/
@@ -177,6 +180,17 @@ function FabricInit(){
   });
   canvas.add(motorRightCircle);
   canvas.add(motorLeftCircle);
+
+  homeSquare = new fabric.Triangle({
+    left: 0,
+    top: 0,
+    width:3,height:3,
+    fill:'black',
+    selectable: false,
+    originX: 'center',
+    visible: false
+  })
+  canvas.add(homeSquare)
 
   gondolaCircle = new fabric.Circle({
     radius: 3, fill: '#a4bd8e', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
@@ -535,6 +549,11 @@ function UiInit(){
         isSettingNewPenPosition = false;
     })
 
+    dom.get("#return-home").on("click", function(){
+        if(typeof home !== undefined){
+            SetNextPenPositionPixels(homePos.x, homePos.y);
+        }
+    })
 
     dom.get("#keyboard-control").on("toggleSelect", function(){
         isKeyboardControlling = true;
@@ -577,7 +596,6 @@ function UiInit(){
 } // ui elements init
 
 function initKeyboardControl(){
-    console.log("init keyboard cont")
     dom.get("#keyboard-input-mm").val( keyboardControlDeltaPx * pxToMMFactor );
     dom.get("#keyboard-input-px").val( keyboardControlDeltaPx);
     dom.get("#keyboard-input-steps").val( keyboardControlDeltaPx * stepsPerMM);
@@ -697,134 +715,6 @@ function codePluginInit(){
 
 } // codePluginInit
 
-
-// Machine functions
-function debug(){
-    mmPerRev = 32;
-    stepsPerRev = 200;
-    stepMultiplier = 1;
-    mmPerStep = .16;
-    stepsPerMM = 6.25;
-    SetMachineDimensionsMM(1200, 800);
-}
-
-function SetMachineDimensionsMM(_w, _h){
-    machineWidthMM = _w;
-    machineHeightMM = _h;
-
-    machineWidthSteps = machineWidthMM * stepsPerMM;
-    machineHeightMMSteps = machineHeightMM * stepsPerMM;
-
-    leftMotorPositionSteps = new Victor(0,0);
-    rightMotorPositionSteps = new Victor(0, machineWidthSteps);
-
-    rightMotorPositionPixels.x = machineWidthMM * mmToPxFactor;
-    motorRightCircle.left = rightMotorPositionPixels.x;
-    motorLineRight.set({'x1': motorRightCircle.left, 'y1': 0})
-    machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
-
-    pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
-    stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
-
-    canvasNeedsRender = true;
-    resizeCanvas();
-    DrawGrid();
-}
-
-function SetpenPositionPixels(_x, _y){
-	penPositionPixels.x = _x;
-	penPositionPixels.y = _y;
-	gondolaCircle.left = _x;
-	gondolaCircle.top = _y;
-	UpdatePositionMetadata(penPositionPixels);
-
-	let leftMotorDist = penPositionPixels.distance(leftMotorPositionPixels) *  pxPerStep;
-	let rightMotorDist = penPositionPixels.distance(rightMotorPositionPixels) *  pxPerStep;
-
-	let cmd = "C09,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",END";
-	SerialSend(cmd);
-	console.log("New Pos: " + cmd);
-}
-
-function SyncGondolaPosition(_x, _y){
-	penPositionPixels.x = _x;
-	penPositionPixels.y = _y;
-	gondolaCircle.left = _x;
-	gondolaCircle.top = _y;
-	UpdatePositionMetadata(penPositionPixels);
-}
-
-function NativeToCartesian(_left, _right){
-	// Math borrowed from original polarcontroller :)  https://github.com/euphy/polargraphcontroller/blob/master/Machine.pde#L339
- 	let calcX = (Math.pow(machineWidthSteps, 2) - Math.pow(_right, 2) + Math.pow(_left, 2)) / (machineWidthSteps * 2);
-	let calcY = Math.sqrt( Math.pow(_left, 2) - Math.pow(calcX, 2) );
-
-	let pos = new Victor(calcX, calcY);
-	return pos;
-}
-
-function SetNextPenPositionPixels(_x, _y, skipQueue = false){
-    // console.time("SetNextPenPositionPixels");
-	nextPenPosition.x = _x;
-	nextPenPosition.y = _y;
-	newPenPositionCircle.left = _x;
-	newPenPositionCircle.top = _y;
-    canvasNeedsRender = true;
-
-	let rightMotorDist = nextPenPosition.distance(rightMotorPositionPixels) *  pxPerStep;
-	let leftMotorDist = nextPenPosition.distance(leftMotorPositionPixels) *  pxPerStep;
-	let cmd = "C17,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",2,END";
-    // console.timeEnd("SetNextPenPositionPixels");
-
-    if(skipQueue){
-        SerialSend(cmd); // cheating the queue.. im in a hurry!!
-    }else{
-        AddToQueue(cmd);
-    }
-}
-
-function AddMMCoordToQueue(x,y){
-	let pos = new Victor(x *  mmToPxFactor, y *  mmToPxFactor);
-
-	let leftMotorDist = pos.distance(leftMotorPositionPixels) * pxPerStep;
-	let rightMotorDist = pos.distance(rightMotorPositionPixels) * pxPerStep;
-	let cmd = "C17,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",2,END";
-	AddToQueue(cmd);
-}
-
-function GetMMCoordCommand(x,y){
-	let pos = new Victor(x *  mmToPxFactor, y *  mmToPxFactor);
-
-	let leftMotorDist = pos.distance(leftMotorPositionPixels) * pxPerStep;
-	let rightMotorDist = pos.distance(rightMotorPositionPixels) * pxPerStep;
-	let cmd = "C17,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",2,END";
-	return cmd;
-}
-
-
-function UpdatePositionMetadata(vec){
-    // Linea Motor
-    motorLineRight.set({'x2': vec.x, 'y2': vec.y });
-    motorLineLeft.set({'x2': vec.x, 'y2': vec.y});
-
-    dom.get("#canvasMetaData .x").html( Math.round(vec.x) );
-    dom.get("#canvasMetaData .y").html( Math.round(vec.y) );
-
-    dom.get("#canvasMetaData .xmm").html( (vec.x * pxToMMFactor).toFixed(1) );
-    dom.get("#canvasMetaData .ymm").html( (vec.y * pxToMMFactor).toFixed(1) );
-
-    let disToLMotor = vec.distance(leftMotorPositionPixels);
-    dom.get("#canvasMetaData .lmotomm").html( (disToLMotor * pxToMMFactor).toFixed(1) );
-    dom.get("#canvasMetaData .lmotosteps").html( (disToLMotor *  pxPerStep).toFixed(1));
-
-    let disToRMotor = vec.distance(rightMotorPositionPixels);
-    dom.get("#canvasMetaData .rmotomm").html( (disToRMotor * pxToMMFactor).toFixed(1) );
-    dom.get("#canvasMetaData .rmotosteps").html( (disToRMotor *  pxPerStep).toFixed(1));
-
-    canvasNeedsRender = true;
-}
-
-
 // *********************
 //
 // Serial & Socket Communication
@@ -925,8 +815,6 @@ function SerialReceive(currentString) {
 
       dom.get("#inputMaxSpeed").val(motorMaxSpeed);
       dom.get("#inputAcceleration").val(motorAcceleration);
-
-      SettingsDownloadFinished();
     break;
 	}
   // end parse response
@@ -1066,6 +954,7 @@ function SetMachineDimensionsMM(_w, _h){
 
     canvasNeedsRender = true;
 
+    initKeyboardControl();
     resizeCanvas();
     DrawGrid();
 }
@@ -1075,6 +964,11 @@ function SetpenPositionPixels(_x, _y){
 	penPositionPixels.y = _y;
 	gondolaCircle.left = _x;
 	gondolaCircle.top = _y;
+
+    homeSquare.top = _y;
+    homeSquare.left = _x;
+    homeSquare.visible = true;
+    homePos = new Victor(_x, _y);
 	UpdatePositionMetadata(penPositionPixels);
 
 	let leftMotorDist = penPositionPixels.distance(leftMotorPositionPixels) *  pxPerStep;
@@ -1082,6 +976,7 @@ function SetpenPositionPixels(_x, _y){
 
 	let cmd = "C09,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",END";
 	SerialSend(cmd);
+    dom.get("#return-home").removeClass("disabled");
 	console.log("New Pos: " + cmd);
 }
 
@@ -1203,9 +1098,6 @@ function OnMachineReady(){
     }
 }
 
-function SettingsDownloadFinished(){
-    initKeyboardControl();
-}
 
 
 // *******

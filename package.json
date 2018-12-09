@@ -30,6 +30,7 @@
     "dependencies": {
         "@types/serialport": "^7.0.0",
         "ace-builds": "^1.4.2",
+        "electron-settings": "^3.2.0",
         "electron-titlebar": "0.0.3",
         "fabric": "^2.4.4",
         "jquery": "^3.1.1",

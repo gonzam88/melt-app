@@ -8,6 +8,12 @@ require('electron-titlebar');
 const SerialPort = require("serialport");
 const Readline = require('@serialport/parser-readline')
 
+const { app } = require('electron');
+const settings = require('electron-settings');
+
+
+
+
 console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 
 var port, parser;
@@ -110,7 +116,13 @@ function p(txt){
 
 
 function MeltInit(){
-    ListSerialPorts();
+    let myport = settings.get('serial-path')
+    if(typeof myport !== undefined){
+        SerialConnectTo(myport)
+    }else{
+        ListSerialPorts();
+    }
+
 
     // Worker setup to allow
     var doWork
@@ -383,7 +395,7 @@ function UiInit(){
     statusElement.html(statusErrorIcon);
 
     portPath = $(this).data("connectto");
-    console.log("Connectando a ", portPath);
+    console.log("Conntecting to", portPath);
     SerialConnectTo(portPath);
   })
 
@@ -842,8 +854,10 @@ function SerialReceive(currentString) {
       statusElement.html(statusSuccessIcon);
       EnableWorkspace();
       $('.ui.basic.modal').modal('hide');
-      console.log(`Succesfully connected ✏️ to serial`);
       SerialSend("C26,END");
+      console.log(`Succesfully connected ✏️ to Polargraph`);
+      settings.set('serial-path', serialPathConnected); // save in local config
+
     break;
 
     case 'READY':
@@ -1012,14 +1026,24 @@ function ListSerialPorts() {
     });
 }
 
-function SerialConnectTo(path){
-    port = new SerialPort(path, {
-      baudRate: 57600
-    });
-    parser = port.pipe(new Readline({ delimiter: '\r\n' }))
+var serialPathConnected = "";
 
-    parser.on('data', SerialReceive)
+function SerialConnectTo(path){
+
+    // Now i actually make the connection
+    port = new SerialPort(path, {baudRate: 57600}, function (err) {
+        if (err) {
+            console.log("error conneting to "+path, err);
+            ListSerialPorts();
+        }else{
+            serialPathConnected = path;
+        }
+    });
+
+    parser = port.pipe(new Readline({ delimiter: '\r\n' }))
+    parser.on('data', SerialReceive);
     dom.get("#connected_to").html(path);
+    return true;
 }
 
 // *********************

@@ -12,8 +12,6 @@ const { app } = require('electron');
 const settings = require('electron-settings');
 var Mousetrap = require('mousetrap');
 
-console.log("Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
-
 var port, parser;
 var machineWidthSteps, machineHeightSteps;
 var mmPerRev, stepsPerRev;
@@ -62,7 +60,7 @@ var currContent;
 var melt;
 var queueEmptyContent;
 
-var homePos;
+var homePos, movementLine;
 
 // Caching jquery selectors
 // source: https://ttmm.io/tech/selector-caching-jquery/
@@ -90,6 +88,7 @@ $("document").ready(function(){
     UiInit();
     codePluginInit();
     UpdateBatchPercent();
+    console.log("Melt. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 }); // doc ready
 
 // Preventing some accidents
@@ -114,7 +113,6 @@ function MeltInit(){
     }else{
         ListSerialPorts();
     }
-
 
     // Worker setup to allow
     var doWork
@@ -188,7 +186,8 @@ function FabricInit(){
     fill:'black',
     selectable: false,
     originX: 'center',
-    visible: false
+    visible: false,
+    hasControls: false
   })
   canvas.add(homeSquare)
 
@@ -204,27 +203,35 @@ function FabricInit(){
   });
   canvas.add(gondolaCircle);
 
-  machineSquare = new fabric.Rect({
-    width: 0, height: 0,
-    left: 0, top: 0,
-    fill: 'rgba(0,0,0,0)',
-    stroke: "white",
-    lockRotation: true,
-    lockMovementX: true,
-    lockMovementY: true,
-    lockScalingX: true,
-    lockScalingY: true,
-    lockUniScaling: true,
-    hasControls: false
-  })
-  canvas.add(machineSquare);
+    machineSquare = new fabric.Rect({
+        width: 0, height: 0,
+        left: 0, top: 0,
+        fill: 'rgba(0,0,0,0)',
+        stroke: "white",
+        lockRotation: true,
+        lockMovementX: true,
+        lockMovementY: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockUniScaling: true,
+        hasControls: false
+    })
+    canvas.add(machineSquare);
+
+    movementLine = new fabric.Line([0,0,100,100], {
+        left: 0, top: 0,
+        stroke: 'white',
+        hasControls: false,
+        visible: false
+    });
+    canvas.add(movementLine)
 
   newPenPositionArrow = new fabric.Line([leftMotorPositionPixels.x, leftMotorPositionPixels.y, 0, 0], {
       left: 0, top: 0, stroke: 'grey', selectable:false});
   canvas.add(newPenPositionArrow);
 
   newPenPositionCircle = new fabric.Circle({
-   radius: 3, fill: '#B38FAC', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
+   radius: 2, fill: '#B38FAC', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
    lockRotation: true,
    lockMovementX: true,
    lockMovementY: true,
@@ -564,10 +571,9 @@ function UiInit(){
         dom.get("#keyboard-control-container").slideUp();
     })
 
-
-
-
+    // ******************
     // Keyboard shortcuts
+    // ******************
     Mousetrap.bind('up', function() {
         if(!isKeyboardControlling || !isMachineReady) return
         SetNextPenPositionPixels(penPositionPixels.x, penPositionPixels.y - keyboardControlDeltaPx, true);
@@ -899,9 +905,6 @@ function ListSerialPorts() {
         }else{
             dom.get("#serial_connections").html(serialConnectionsContent);
         }
-
-
-
     });
 }
 
@@ -948,12 +951,10 @@ function SetMachineDimensionsMM(_w, _h){
 
 	machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
 
-
 	pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
 	stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
 
     canvasNeedsRender = true;
-
     initKeyboardControl();
     resizeCanvas();
     DrawGrid();
@@ -977,7 +978,7 @@ function SetpenPositionPixels(_x, _y){
 	let cmd = "C09,"+ Math.round(leftMotorDist) +","+ Math.round(rightMotorDist) +",END";
 	SerialSend(cmd);
     dom.get("#return-home").removeClass("disabled");
-	console.log("New Pos: " + cmd);
+    dom.get("#control-pen-position").removeClass("disabled");
 }
 
 function SyncGondolaPosition(_x, _y){
@@ -1086,6 +1087,9 @@ function UploadMachineConfig(){
 
 function OnMachineReady(){
     // Fired when receives a 'ready' message from machine
+    // movementLine.visible = false;
+    canvasNeedsRender = true;
+
     statusElement.html(statusSuccessIcon);
     isMachineReady = true;
     if(!batchCompleted){
@@ -1096,6 +1100,7 @@ function OnMachineReady(){
         UpdateBatchPercent();
       }
     }
+
 }
 
 
@@ -1111,10 +1116,15 @@ var queueUiLength = 51;
 var showNotificationOnFinish = false;
 
 function CheckQueue(){
-	// console.log("checking queue");
+    // TODO ! Move sending commands to objects, in pixels.
+    // Do conversion to left / right steps in the last moment
+    // Keep the possibility to send string comands by checking typeof
+    //
   if(isQueueActive && isMachineReady){
     if(machineQueue.length > 0){
-        SerialSend( machineQueue.shift() );
+        let nextCommand = machineQueue.shift();
+
+        SerialSend( nextCommand );
         $('#queue .item').first().remove();
         if(machineQueue.length > queueUiLength){
             dom.get("#queue-last-item").before("<div class='queue item'><span class='cmd'>"+machineQueue[queueUiLength-1]+"</span><div class='ui divider'></div></div>");
@@ -1174,6 +1184,7 @@ function UpdateBatchPercent(){
   if(machineQueue.length == 0){
       newBatchPercent = 0;
       win.setProgressBar(-1)
+      dom.get("#queue-progress").progress({percent: 0});
   }else if (batchTotal > 0) {
     newBatchPercent = batchDone / batchTotal * 100;
   }
@@ -1229,8 +1240,6 @@ function onPolargraphConnect(){
     settings.set('serial-path', serialPathConnected); // save in local config
 
 }
-
-
 
 const Polargraph = class{
 	// TODO Put plotter functions here
@@ -1431,7 +1440,6 @@ function TenPrint(){
         melt.line(x+xoff+grid, y+yoff, x+xoff, y+yoff+grid);
     }
 }
-
 
 function isEven(n) {
    return n % 2 == 0;

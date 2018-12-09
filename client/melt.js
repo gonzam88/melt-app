@@ -40,7 +40,7 @@ var currToggleEl;
 
 var canvas, canvasNeedsRender = false;
 var appRefreshRate = 500; // in millis
-var motorLineRight, motorLineLeft, motorRightCircle, motorLeftCircle, machineSquare;
+var motorLineRight, motorLineLeft, motorRightCircle, motorLeftCircle, machineSquareBounds;
 var mouseVector = new Victor(0,0);
 var isSettingPenPos = false;
 var isSettingNewPenPosition = false;
@@ -53,7 +53,7 @@ var homeSquare;
 
 var leftMotorPositionPixels = new Victor(0,0);
 var rightMotorPositionPixels = new Victor(0,0);
-var newPenPositionArrow, newPenPositionCircle;
+var newPenPositionArrow; //, newPenPositionCircle;
 var waitingReadyAfterPause = false;
 var currContent;
 
@@ -191,6 +191,15 @@ function FabricInit(){
   })
   canvas.add(homeSquare)
 
+  movementLine = new fabric.Line([0,0,100,100], {
+      left: 0, top: 0,
+      stroke: 'white',
+      strokeWidth: .5,
+      hasControls: false,
+      visible: false
+  });
+  canvas.add(movementLine)
+
   gondolaCircle = new fabric.Circle({
     radius: 3, fill: '#a4bd8e', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
     lockRotation: true,
@@ -203,7 +212,7 @@ function FabricInit(){
   });
   canvas.add(gondolaCircle);
 
-    machineSquare = new fabric.Rect({
+    machineSquareBounds = new fabric.Rect({
         width: 0, height: 0,
         left: 0, top: 0,
         fill: 'rgba(0,0,0,0)',
@@ -216,31 +225,25 @@ function FabricInit(){
         lockUniScaling: true,
         hasControls: false
     })
-    canvas.add(machineSquare);
+    canvas.add(machineSquareBounds);
 
-    movementLine = new fabric.Line([0,0,100,100], {
-        left: 0, top: 0,
-        stroke: 'white',
-        hasControls: false,
-        visible: false
-    });
-    canvas.add(movementLine)
+
 
   newPenPositionArrow = new fabric.Line([leftMotorPositionPixels.x, leftMotorPositionPixels.y, 0, 0], {
       left: 0, top: 0, stroke: 'grey', selectable:false});
   canvas.add(newPenPositionArrow);
 
-  newPenPositionCircle = new fabric.Circle({
-   radius: 2, fill: '#B38FAC', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
-   lockRotation: true,
-   lockMovementX: true,
-   lockMovementY: true,
-   lockScalingX: true,
-   lockScalingY: true,
-   lockUniScaling: true,
-   hasControls: false
-  });
-  canvas.add(newPenPositionCircle);
+  // newPenPositionCircle = new fabric.Circle({
+  //  radius: 2, fill: '#B38FAC', left: 0, top: 0, hasControls: false, originX: 'center', originY: 'center',
+  //  lockRotation: true,
+  //  lockMovementX: true,
+  //  lockMovementY: true,
+  //  lockScalingX: true,
+  //  lockScalingY: true,
+  //  lockUniScaling: true,
+  //  hasControls: false
+  // });
+  // canvas.add(newPenPositionCircle);
 
   // Mousewheel Zoom
   canvas.on('mouse:wheel', function(opt) {
@@ -678,8 +681,8 @@ function resizeCanvas() {
   canvas.setHeight( $('#canvasSizer').height() );
   canvas.setWidth(  $('#canvasSizer').width() );
 
-  let offX = (canvas.width - machineSquare.width) / 2;
-  let offY = (canvas.height - machineSquare.height) / 2;
+  let offX = (canvas.width - machineSquareBounds.width) / 2;
+  let offY = (canvas.height - machineSquareBounds.height) / 2;
 
   canvas.viewportTransform[4] = offX;
   canvas.viewportTransform[5] = offY;
@@ -949,7 +952,7 @@ function SetMachineDimensionsMM(_w, _h){
 	motorRightCircle.left = rightMotorPositionPixels.x;
 	motorLineRight.set({'x1': motorRightCircle.left, 'y1': 0})
 
-	machineSquare.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
+	machineSquareBounds.set({'width': motorRightCircle.left, 'height': machineHeightMM * mmToPxFactor});
 
 	pxPerStep = machineWidthSteps / rightMotorPositionPixels.x;
 	stepPerPx = rightMotorPositionPixels.x / machineWidthSteps;
@@ -1002,8 +1005,8 @@ function SetNextPenPositionPixels(_x, _y, skipQueue = false){
     // console.time("SetNextPenPositionPixels");
 	nextPenPosition.x = _x;
 	nextPenPosition.y = _y;
-	newPenPositionCircle.left = _x;
-	newPenPositionCircle.top = _y;
+	// newPenPositionCircle.left = _x;
+	// newPenPositionCircle.top = _y;
     canvasNeedsRender = true;
 
 	let rightMotorDist = nextPenPosition.distance(rightMotorPositionPixels) *  pxPerStep;
@@ -1087,7 +1090,7 @@ function UploadMachineConfig(){
 
 function OnMachineReady(){
     // Fired when receives a 'ready' message from machine
-    // movementLine.visible = false;
+    movementLine.visible = false;
     canvasNeedsRender = true;
 
     statusElement.html(statusSuccessIcon);
@@ -1122,9 +1125,17 @@ function CheckQueue(){
     //
   if(isQueueActive && isMachineReady){
     if(machineQueue.length > 0){
-        let nextCommand = machineQueue.shift();
 
-        SerialSend( nextCommand );
+        let commandString = machineQueue.shift()
+        if(commandString.startsWith("C17")){
+            let cmdArr = commandString.split(",");
+            let futurePos = NativeToCartesian(cmdArr[1],cmdArr[2]);
+            movementLine.set({'x1': penPositionPixels.x, 'y1': penPositionPixels.y, 'x2': futurePos.x *  stepPerPx,'y2': futurePos. y *  stepPerPx});
+            movementLine.visible = true;
+        }
+
+        SerialSend( commandString );
+
         $('#queue .item').first().remove();
         if(machineQueue.length > queueUiLength){
             dom.get("#queue-last-item").before("<div class='queue item'><span class='cmd'>"+machineQueue[queueUiLength-1]+"</span><div class='ui divider'></div></div>");
@@ -1241,6 +1252,36 @@ function onPolargraphConnect(){
 
 }
 
+// ***********************
+//
+// Commands
+//
+// ***********************
+// Same command vars as polargraph_server_a1.ino
+var CMDS = {
+    "CHANGELENGTH": "C01",
+    "CHANGEPENWIDTH": "C02",
+    "DRAWPIXEL": "C05",
+    "DRAWSCRIBBLEPIXEL": "C06",
+    "CHANGEDRAWINGDIRECTION": "C08",
+    "TESTPENWIDTHSQUARE": "C11",
+    "SETPOSITION": "C09",
+    "PENDOWN": "C13",
+    "PENUP": "C14",
+    "SETPENLIFTRANGE": "C45",
+    "CHANGELENGTHDIRECT": "C17",
+    "SETMACHINESIZE": "C24",
+    "GETMACHINEDETAILS": "C26",
+    "RESETEEPROM": "C27",
+    "SETMACHINEMMPERREV": "C29",
+    "SETMACHINESTEPSPERREV": "C30",
+    "SETMOTORSPEED": "C31",
+    "SETMOTORACCEL": "C32",
+    "SETMACHINESTEPMULTIPLIER": "C37"
+}
+Object.freeze(CMDS)
+
+
 const Polargraph = class{
 	// TODO Put plotter functions here
 }
@@ -1261,6 +1302,10 @@ const Melt = class{
         this.isPenUp = true;
 		// if set to true it wont move the pen up and down after each shape
 	}
+    Log(str){
+        // Will add a log to queue, which will console log when it reaches its time
+        AddToQueue( {cmd: "log", msg: str} );
+    }
 	BeginShape(){
 		this.isDrawingPath = true;
 	}

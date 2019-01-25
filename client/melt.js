@@ -108,7 +108,7 @@ function p(txt){
 
 function MeltInit(){
     let myport = settings.get('serial-path')
-    if(typeof myport !== undefined){
+    if(typeof myport != "undefined"){
         SerialConnectTo(myport)
     }else{
         ListSerialPorts();
@@ -706,7 +706,8 @@ function codePluginInit(){
     editor.setOptions({
         enableBasicAutocompletion: true,
         enableSnippets: true,
-        enableLiveAutocompletion: false
+        enableLiveAutocompletion: true,
+        asi: true // acepta que no haya comas
     });
     session = editor.getSession();
     if(scriptCode != undefined){
@@ -1090,6 +1091,8 @@ function UploadMachineConfig(){
 
 function OnMachineReady(){
     // Fired when receives a 'ready' message from machine
+
+
     movementLine.visible = false;
     canvasNeedsRender = true;
 
@@ -1097,6 +1100,7 @@ function OnMachineReady(){
     isMachineReady = true;
     if(!batchCompleted){
       if(isQueueActive || waitingReadyAfterPause){
+        meltEvents.dispatchEvent(plotterReadyEvent);
         waitingReadyAfterPause = false;
         batchDone ++;
         if(batchDone >= batchTotal) QueueBatchComplete();
@@ -1292,6 +1296,11 @@ const Polargraph = class{
 //
 // ***********************
 
+
+var meltEvents = document.createTextNode(null);
+
+var plotterReadyEvent = new Event("plotterReady");
+
 const Melt = class{
 	// Drawing Functions
 	//
@@ -1302,6 +1311,8 @@ const Melt = class{
         this.isPenUp = true;
 		// if set to true it wont move the pen up and down after each shape
 	}
+
+    // ready event
     Log(str){
         // Will add a log to queue, which will console log when it reaches its time
         AddToQueue( {cmd: "log", msg: str} );
@@ -1424,10 +1435,18 @@ function CheckCode(){
     }
 }
 
+var attachedScript;
+
 function EvalCode(){
     showNotificationOnFinish = true;
-	eval(codeStr); // Actually interprets string as javascript
-	console.log('code evaluated');
+    console.log('Code Run @ ' + new Date());
+	// eval(codeStr); // Actually interprets string as javascript
+    if(attachedScript !== undefined) attachedScript.remove();
+    attachedScript = document.createElement("script");
+    attachedScript.text = codeStr;
+    var firstScriptTag = document.getElementsByTagName("script")[1];
+    firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
+
 	dom.get("#remaining-repetitions span").html(remainingCodeRepetitions);
 	console
 	if(machineQueue.length == 0){

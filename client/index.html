@@ -20,6 +20,8 @@
   <body>
 		<div id="electron-titlebar" class="drag"></div>
 
+<div id="app">
+
     <div class="ui grid">
       <div class="three column row" style="padding-bottom:0px">
         <div class="left floated column">
@@ -230,9 +232,12 @@
 
 				<h5>Machine</h5>
 
+
+
+
                 <div class="ui fluid right labeled input mypopup"  data-html="<div class='header'>Set Machine Size</div><div class='content'><pre>C24,[width],[height],END</pre>Sets the machine's dimensions in millimetres.</div>">
                   <div class="ui basic label">Machine Width (mm)</div>
-                  <input type="number" placeholder="1200" id="inputMachineWidth">
+                  <input type="number" placeholder="1200" id="inputMachineWidth" v-model="melt.machine.widthMM">
                 </div>
 
                 <div class="ui fluid right labeled input">
@@ -389,11 +394,13 @@
   </div>
 </div>
 
-
+</div> <!-- (vue) app -->
   </body>
 
 	<!-- semantic ui -->
 	<script src="../node_modules/semantic-ui-css/semantic.min.js"></script>
+	<!-- vue -->
+	<script src="vue-2.5.22.js"></script>
 	<!-- load ace -->
 	<script src="../node_modules/ace-builds/src-min/ace.js"></script>
 	<!-- load ace language tools -->

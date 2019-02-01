@@ -12,55 +12,151 @@ const { app } = require('electron');
 const settings = require('electron-settings');
 var Mousetrap = require('mousetrap');
 
-var port, parser;
-var machineWidthSteps, machineHeightSteps;
-var mmPerRev, stepsPerRev;
-var stepMultiplier;
-var downPos, upPos;
-var mmPerStep, stepsPerMM;
-var pageWidth, pageHeight;
-var machineWidthMM, machineHeightMM;
-var leftMotorPositionSteps, rightMotorPositionSteps;
-var isMachineReady = false;
-var isQueueActive = true;
-var motorMaxSpeed, motorAcceleration;
+var Melt = (function(){
+    console.log("Melt. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
 
-var machineQueue = [];
+    return {
+        // Public Stuff
+         serial : {
+                port    : null,
+                parser  : null,
+        },
 
-var mmToPxFactor = 0.25;
-var pxToMMFactor = 4;
-var pxPerStep, stepPerPx;
-var syncedLeft, syncedRight;
+         machine : {
+                mmPerStep       : null,
+                stepsPerMM      : null,
 
-var statusErrorIcon = '<i class="statuserror small exclamation circle icon"></i>';
-var statusSuccessIcon = '<i class="statusok small check circle icon"></i>';
-var statusWorkingIcon = '<i class="statusworking notched circle loading icon"></i>';
-var statusElement = $("#statusAlert");
-var currToggleEl;
+                widthSteps      : null,
+                heightSteps     : null,
+                widthMM         : null,
+                heightMM        : null,
 
-var canvas, canvasNeedsRender = false;
-var appRefreshRate = 500; // in millis
-var motorLineRight, motorLineLeft, motorRightCircle, motorLeftCircle, machineSquareBounds;
-var mouseVector = new Victor(0,0);
-var isSettingPenPos = false;
-var isSettingNewPenPosition = false;
-var isKeyboardControlling = false;
-var keyboardControlDeltaPx  = 2.5;
-var penPositionPixels = new Victor(0,0);
-var nextPenPosition = new Victor(0,0);
-var gondolaCircle;
-var homeSquare;
+                mmPerPrev       : null,
+                stepsPerRev     : null,
+                stepMultiplier  : null,
+                downPos         : null,
+                upPos           : null,
 
-var leftMotorPositionPixels = new Victor(0,0);
-var rightMotorPositionPixels = new Victor(0,0);
-var newPenPositionArrow; //, newPenPositionCircle;
-var waitingReadyAfterPause = false;
-var currContent;
+                isReady         : false,
+                queue           : [],
+                isQueueActive   : true,
+                motors : {
+                    leftDisSteps : null,
+                    rightDisSteps: null,
+                    leftPosPx   : new Victor(0,0),
+                    rightPosPx  : new Victor(0,0),
+                    maxSpeed    : null,
+                    acceleration: null,
+                    syncedLeft      : null,
+                    syncedRight     : null,
+                }
+            },
+         page : {
+                width           : null,
+                height          : null,
+            },
+         factors : {
+                mmToPx          : 0.25,
+                pxToMM          : 4 ,
+                pxPerStep       : null,
+                stepPerPx       : null
+            },
+         statusIcon : {
+            error   : '<i class="statuserror small exclamation circle icon"></i>',
+            success : '<i class="statusok small check circle icon"></i>',
+            working : '<i class="statusworking notched circle loading icon"></i>',
+            element : document.getElementById("statusAlert")
+        },
 
-var melt;
-var queueEmptyContent;
+         ui : {
+            toggledElement  : null,
+            canvas          : null,
+            canvasNeedsRender: false,
+            appRefreshRate  : 500, // in millis
+            machine : {
+                lineRight   : null,
+                lineLeft    : null,
+                rightCircle : null,
+                leftCircle  : null,
+                squareBounds: null,
+                leftMotorPositionPixels : new Victor(0,0),
+                rightMotorPositionPixels: new Victor(0,0)
+            },
+            newPenPositionArrow : null,
+            waitingReadyAfterPause : null,
+            currContent : null,
+            mousePos : new Victor(0,0),
+            isSettingPenPos : false,
+            isSettingNewPenPosition : false,
+            isKeyboardControlling : false,
+            keyboardControlDeltaPx  : 2.5,
+            penPositionPixels : new Victor(0,0),
+            nextPenPosition : new Victor(0,0),
+            gondolaCircle   : null,
+            homeSquare      : null,
+            queueEmptyContent : $("#queue").html(),
+            homePos      : null,
+            movementLine : null
+        }
 
-var homePos, movementLine;
+
+    }
+})();
+
+
+var vue = new Vue({
+  el: '#app',
+  data: {
+      melt: Melt,
+  }
+})
+
+
+// var port, parser;
+// var machineWidthSteps, machineHeightSteps;
+// var mmPerRev, stepsPerRev;
+// var stepMultiplier;
+// var downPos, upPos;
+// var mmPerStep, stepsPerMM;
+// var pageWidth, pageHeight;
+// var machineWidthMM, machineHeightMM;
+// var leftMotorPositionSteps, rightMotorPositionSteps;
+// var isMachineReady = false;
+// var isQueueActive = true;
+// var motorMaxSpeed, motorAcceleration;
+
+// var machineQueue = [];
+
+// var mmToPxFactor = 0.25;
+// var pxToMMFactor = 4;
+// var pxPerStep, stepPerPx;
+// var syncedLeft, syncedRight;
+
+// var statusErrorIcon = '<i class="statuserror small exclamation circle icon"></i>';
+// var statusSuccessIcon = '<i class="statusok small check circle icon"></i>';
+// var statusWorkingIcon = '<i class="statusworking notched circle loading icon"></i>';
+// var statusElement = $("#statusAlert");
+// var toggledElement;
+
+// var canvas, canvasNeedsRender = false;
+// var appRefreshRate = 500; // in millis
+// var motorLineRight, motorLineLeft, motorRightCircle, motorLeftCircle, machineSquareBounds;
+// var mousePos = new Victor(0,0);
+// var isSettingPenPos = false;
+// var isSettingNewPenPosition = false;
+// var isKeyboardControlling = false;
+// var keyboardControlDeltaPx  = 2.5;
+// var penPositionPixels = new Victor(0,0);
+// var nextPenPosition = new Victor(0,0);
+// var gondolaCircle;
+// var homeSquare;
+
+
+
+// var melt;
+// var queueEmptyContent;
+
+// var homePos, movementLine;
 
 // Caching jquery selectors
 // source: https://ttmm.io/tech/selector-caching-jquery/
@@ -79,16 +175,18 @@ var dom = new Selector_Cache();
 // dom.get( '#element' );
 
 
+
+
 $("document").ready(function(){
 // *************************
 // *  Call Main Functions  *
 // *************************
-    MeltInit();
-    FabricInit();
-    UiInit();
-    codePluginInit();
-    UpdateBatchPercent();
-    console.log("Melt. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
+    // MeltInit();
+    // FabricInit();
+     UiInit();
+    // codePluginInit();
+    // UpdateBatchPercent();
+
 }); // doc ready
 
 // Preventing some accidents
@@ -274,12 +372,12 @@ function FabricInit(){
         this.lastPosY = evt.clientY;
     }else{
         if( isSettingPenPos){
-        SetpenPositionPixels(mouseVector.x, mouseVector.y);
+        SetpenPositionPixels(mousePos.x, mousePos.y);
   		  isSettingPenPos = false; // SHould this go here or inside the function SetpenPositionPixels ?
         DeactivateToggles();
   	  }else if( isSettingNewPenPosition ){
-  		  SetNextPenPositionPixels(mouseVector.x, mouseVector.y);
-          // console.log("Setting at ", mouseVector.x, mouseVector.y);
+  		  SetNextPenPositionPixels(mousePos.x, mousePos.y);
+          // console.log("Setting at ", mousePos.x, mousePos.y);
   		  // isSettingNewPenPosition = false;
   	  }
     }
@@ -298,10 +396,10 @@ function FabricInit(){
   	}
 
   	let pointer = canvas.getPointer(options.e);
-  	mouseVector.x = pointer.x;
-  	mouseVector.y = pointer.y;
+  	mousePos.x = pointer.x;
+  	mousePos.y = pointer.y;
 
-  	UpdatePositionMetadata(mouseVector);
+  	UpdatePositionMetadata(mousePos);
     canvas.renderAll();
   }); // mouse move
 
@@ -516,27 +614,27 @@ function UiInit(){
 
     // Custom toggle callback implementation
     dom.get(".myToggle").click(function(){
-        if(currToggleEl){
-            if( $(this).attr("id") == $(currToggleEl).attr("id") ){
+        if(toggledElement){
+            if( $(this).attr("id") == $(toggledElement).attr("id") ){
                 // Deselect current toggle
-                currToggleEl.trigger("toggleDeselect");
-                currToggleEl.removeClass("activeToggle");
-                currToggleEl = "";
+                toggledElement.trigger("toggleDeselect");
+                toggledElement.removeClass("activeToggle");
+                toggledElement = "";
             }else{
                 // Deselect prev toggle
-                currToggleEl.trigger("toggleDeselect");
-                currToggleEl.removeClass("activeToggle");
+                toggledElement.trigger("toggleDeselect");
+                toggledElement.removeClass("activeToggle");
 
                 // Select the new toggle
-                currToggleEl = $(this);
-                currToggleEl.trigger("toggleSelect");
-                currToggleEl.addClass("activeToggle");
+                toggledElement = $(this);
+                toggledElement.trigger("toggleSelect");
+                toggledElement.addClass("activeToggle");
             }
         }else{
             // First toggle to be selected
-            currToggleEl = $(this);
-            currToggleEl.trigger("toggleSelect");
-            currToggleEl.addClass("activeToggle");
+            toggledElement = $(this);
+            toggledElement.trigger("toggleSelect");
+            toggledElement.addClass("activeToggle");
         }
     });
 
@@ -631,11 +729,11 @@ function initKeyboardControl(){
 }
 
 function DeactivateToggles(){
-    if(currToggleEl){
+    if(toggledElement){
         // Deselect current toggle
-        currToggleEl.trigger("toggleDeselect");
-        currToggleEl.removeClass("activeToggle");
-        currToggleEl = "";
+        toggledElement.trigger("toggleDeselect");
+        toggledElement.removeClass("activeToggle");
+        toggledElement = "";
     }
 }
 function EnableWorkspace(){
@@ -1301,7 +1399,7 @@ var meltEvents = document.createTextNode(null);
 
 var plotterReadyEvent = new Event("plotterReady");
 
-const Melt = class{
+const Melts = class{
 	// Drawing Functions
 	//
 	// They try to mimic the p5.js reference

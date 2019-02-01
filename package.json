@@ -38,6 +38,7 @@
         "remote": "^0.2.6",
         "semantic-ui-css": "^2.4.1",
         "serialport": "^7.1.0",
+        "usb-detection": "^4.1.0",
         "victor": "^1.1.0"
     },
     "build": {

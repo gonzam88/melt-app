@@ -11,6 +11,10 @@ const Readline = require('@serialport/parser-readline')
 const { app } = require('electron');
 const settings = require('electron-settings');
 var Mousetrap = require('mousetrap');
+var usbDetect = require('usb-detection');
+
+
+
 
 var Melt = (function(){
     console.log("Melt. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
@@ -181,7 +185,7 @@ $("document").ready(function(){
 // *************************
 // *  Call Main Functions  *
 // *************************
-    // MeltInit();
+    MeltInit();
     // FabricInit();
      UiInit();
     // codePluginInit();
@@ -211,6 +215,13 @@ function MeltInit(){
     }else{
         ListSerialPorts();
     }
+
+    // If theres any change to USB Ports, scan again
+    usbDetect.startMonitoring();
+    usbDetect.on('change', function(device) {
+        console.log("USB Changed")
+        setTimeout(ListSerialPorts, 500)
+    });
 
     // Worker setup to allow
     var doWork
@@ -1010,6 +1021,7 @@ function ListSerialPorts() {
     });
 }
 
+
 var serialPathConnected = "";
 
 function SerialConnectTo(path){
@@ -1019,8 +1031,10 @@ function SerialConnectTo(path){
         if (err) {
             console.log("error conneting to "+path, err);
             ListSerialPorts();
+
         }else{
             serialPathConnected = path;
+            usbDetect.stopMonitoring()
         }
     });
 

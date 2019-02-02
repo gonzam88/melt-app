@@ -269,24 +269,7 @@ h2 .content, .ui.header .sub.header{
     font-size: 16px;
 }
 
-#run-code-container{
-	width: calc(100% + 2px);
-    right: 1px;
-}
-#run-code-button{
-	width: 100%;
-	padding: 1.2em 0.78571429em 1.2em;
-	border-radius: 0px 4px 4px 4px;
-	margin-right: 2px !important;
-    margin-top: 3px;
-}
-.run-code-updown{
-	padding:4px !important;
-}
-.run-code-updown i{
-	margin: 0px !important
-}
-#remaining-repetitions, #stop-code-loop, #run-code-check-error, #queue-last-item{
+#run-code-check-error, #queue-last-item{
 	display: none;
 }
 
@@ -358,11 +341,11 @@ h2 .content, .ui.header .sub.header{
     user-select: none; /* Standard */
 }
 .checkbox-container{
+    flex: 1 auto;
+    padding: 11px;
     background-color: #e0e1e2;
-    border-radius: 4px 0px 4px 4px;
-    margin-top: 3px;
-    margin-right: 2px;
-    padding: 4px;
+    border: 1px solid #cac8c8;
+    border-top: none;
 }
 #editor-container .dropdown.button{
 	text-align: center;

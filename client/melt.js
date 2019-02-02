@@ -136,7 +136,7 @@ var Polargraph = (function() {
         usbDetect.startMonitoring();
         usbDetect.on('change', function() {
             // console.log("USB Changed")
-            setTimeout(ListSerialPorts, 500)
+            setTimeout(ListSerialPorts, 1000)
         });
 
         // Worker setup to allow
@@ -362,7 +362,10 @@ var Polargraph = (function() {
     }
     var _uiInit = function() {
         $('.ui.dropdown').dropdown();
-        
+        dom.get("#sketchToggle").click(function(){
+            ui.isOnlySketching != ui.isOnlySketching
+        });
+
         queueEmptyContent = $("#queue").html();
         // Input console
         dom.get("#consoleInput").keyup(function(e) {
@@ -373,7 +376,7 @@ var Polargraph = (function() {
                 let msg = dom.get("#consoleInput").val();
                 if (msg == "") return;
                 msg = msg.toUpperCase();
-                SerialSend(msg);
+                _SerialSend(msg);
                 // WriteConsole(msg, false);
                 dom.get("#consoleInput").val(""); // Vacío el input
                 lastSentConsoleCmd = msg;
@@ -398,7 +401,7 @@ var Polargraph = (function() {
             ui.currContent.hide();
             newContent.show();
             if (href == "console") {
-                dom.get("#console").scrollTop(dom.get("#console")[0].scrollHeight); // Scroleo para abajo de todo
+                $("#console").scrollTop($("#console")[0].scrollHeight); // Scroleo para abajo de todo
 
             } else if (href == "tools") {
                 ExitEditorMode();
@@ -471,10 +474,10 @@ var Polargraph = (function() {
         })
 
         var snippets = {
-            line: "line(x1, y1, x2, y2);",
-            ellipse: "ellipse(x, y, radio);",
-            shape: "beginShape();\n\// Your vertices\n\endShape();",
-            penposition: "(PenPosition().x, PenPosition().y);",
+            line: "line(x1, y1, x2, y2);\n",
+            ellipse: "ellipse(x, y, radio);\n",
+            shape: "beginShape();\n\// Your vertices\n\endShape();\n",
+            penposition: "(PenPosition().x, PenPosition().y);\n",
         }
         dom.get(".codeTools").click(function() {
             let tool = $(this).data("toolname");
@@ -813,7 +816,6 @@ var Polargraph = (function() {
         lastReceivedString = currentString;
     }
     var lastSentConsoleCmd = ""; // TODO hacer de esto un array
-    var consoleDomElement = dom.get("#console");
     var WriteConsole = function(txt, received = false) {
         let icon, clase = "log";
         if (received) {
@@ -824,7 +826,8 @@ var Polargraph = (function() {
         txt = '<span class="content">' + txt + '</span>';
 
         let msg = "<div data-repeated='0' class='" + clase + "'>" + icon + txt + "</div>";
-        dom.get("#console").append(msg);
+        $("#console").append(msg);
+        $("#console").scrollTop($("#console")[0].scrollHeight); // Scroleo para abajo de todo
 
         // dom.get("#console").scrollTop(dom.get("#console")[0].scrollHeight); // Scroleo para abajo de todo
         if (dom.get("#console").children().length > 100) {

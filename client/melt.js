@@ -18,9 +18,11 @@ var usbDetect = require('usb-detection');
 
 window.onerror = ErrorLog;
 function ErrorLog (msg, url, line) {
+    if(url != "") return;
     //console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
     var errMsg = `<div>${msg} on line ${line}<div>`;
     $("#preview-console-content").append(errMsg);
+    $("#preview-console-content").scrollTop($("#preview-console-content")[0].scrollHeight); // Scroleo para abajo de todo
     return true; // avoid to display an error message in the browser
 }
 
@@ -383,6 +385,10 @@ var Polargraph = (function() {
         dom.get("#sketchToggle").click(function() {
             ui.isOnlySketching != ui.isOnlySketching
         });
+
+        dom.get("#console-clear").click(function(){
+            dom.get("#preview-console-content").html("");
+        })
 
         // Leo los archivos dentro de la carpeta de ejemplos
         const examplesFolder = './client/examples/';

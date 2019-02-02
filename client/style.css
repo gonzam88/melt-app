@@ -362,3 +362,10 @@ h2 .content, .ui.header .sub.header{
 .ui.attached.segment{
     border: none;
 }
+#console-clear{
+    padding: 4px;
+    width: 50px;
+    margin: 0;
+    font-size: 10px;
+    background-color: #d6d7d8;
+}

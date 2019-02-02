@@ -169,20 +169,44 @@ var Polargraph = (function() {
         ui.canvas.freeDrawingBrush.width = .5;
         ui.canvas.isDrawingMode = false;
 
+        fabric.Object.prototype.set({
+            hasControls: false,
+            originX: 'center',
+            originY: 'center',
+            lockRotation: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockScalingX: true,
+            lockScalingY: true,
+            lockUniScaling: true,
+            hasControls: false,
+            selectable: false
+        });
+
         window.addEventListener('resize', resizeCanvas, false);
 
         // Define some fabric.js elements
+        ui.machine.squareBounds = new fabric.Rect({
+            width: 0,
+            height: 0,
+            left: 0,
+            top: 0,
+            fill: 'rgba(255,255,255,.2)',
+            stroke: "white",
+            originX: 'left',
+            originY: 'top',
+        })
+        ui.canvas.add(ui.machine.squareBounds);
+
         ui.machine.lineRight = new fabric.Line([machine.motors.rightPosPx.x, machine.motors.rightPosPx.y, 0, 0], {
             left: 0,
             top: 0,
             stroke: 'grey',
-            selectable: false
         });
         ui.machine.lineLeft = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
             left: 0,
             top: 0,
             stroke: 'grey',
-            selectable: false
         });
         ui.canvas.add(ui.machine.lineRight);
         ui.canvas.add(ui.machine.lineLeft);
@@ -192,32 +216,12 @@ var Polargraph = (function() {
             fill: 'white',
             left: machine.motors.rightPosPx.x,
             top: machine.motors.rightPosPx.y,
-            hasControls: false,
-            originX: 'center',
-            originY: 'center',
-            lockRotation: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            lockUniScaling: true,
-            hasControls: false
         });
         ui.machine.leftCircle = new fabric.Circle({
             radius: 6,
             fill: 'white',
             left: machine.motors.leftPosPx.x,
             top: machine.motors.rightPosPx.y,
-            hasControls: false,
-            originX: 'center',
-            originY: 'center',
-            lockRotation: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            lockUniScaling: true,
-            hasControls: false
         });
         ui.canvas.add(ui.machine.rightCircle);
         ui.canvas.add(ui.machine.leftCircle);
@@ -228,10 +232,7 @@ var Polargraph = (function() {
             width: 3,
             height: 3,
             fill: 'black',
-            selectable: false,
-            originX: 'center',
-            visible: false,
-            hasControls: false
+            visible: false
         })
         ui.canvas.add(ui.homeSquare)
 
@@ -240,7 +241,6 @@ var Polargraph = (function() {
             top: 0,
             stroke: 'white',
             strokeWidth: .5,
-            hasControls: false,
             visible: false
         });
         ui.canvas.add(ui.movementLine)
@@ -250,41 +250,13 @@ var Polargraph = (function() {
             fill: '#a4bd8e',
             left: 0,
             top: 0,
-            hasControls: false,
-            originX: 'center',
-            originY: 'center',
-            lockRotation: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            lockUniScaling: true,
-            hasControls: false
         });
         ui.canvas.add(ui.gondolaCircle);
-
-        ui.machine.squareBounds = new fabric.Rect({
-            width: 0,
-            height: 0,
-            left: 0,
-            top: 0,
-            fill: 'rgba(0,0,0,0)',
-            stroke: "white",
-            lockRotation: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            lockUniScaling: true,
-            hasControls: false
-        })
-        ui.canvas.add(ui.machine.squareBounds);
 
         ui.newPenPositionArrow = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
             left: 0,
             top: 0,
             stroke: 'grey',
-            selectable: false
         });
         ui.canvas.add(ui.newPenPositionArrow);
         // Mousewheel Zoom
@@ -323,6 +295,7 @@ var Polargraph = (function() {
                     SetPenPositionPixels(ui.mousePos.x, ui.mousePos.y);
                     ui.isSettingPenPos = false; // SHould this go here or inside the function SetPenPositionPixels ?
                     DeactivateToggles();
+                    $("#set-custom-postion").removeClass("teal");
                 } else if (ui.isSettingNewPenPosition) {
                     SetNextPenPositionPixels(ui.mousePos.x, ui.mousePos.y);
                     // ui.isSettingNewPenPosition = false;

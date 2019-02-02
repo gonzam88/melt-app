@@ -18,7 +18,9 @@ var usbDetect = require('usb-detection');
 
 window.onerror = ErrorLog;
 function ErrorLog (msg, url, line) {
-    console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
+    //console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
+    var errMsg = `<div>${msg} on line ${line}<div>`;
+    $("#preview-console-content").append(errMsg);
     return true; // avoid to display an error message in the browser
 }
 
@@ -136,7 +138,9 @@ var Polargraph = (function() {
         mm: null,
         px: null,
         steps: null
-    }
+    };
+
+    var editor, session, scriptCode;
 
     var _serialInit = function() {
         let myport = settings.get('serial-path')
@@ -533,13 +537,17 @@ var Polargraph = (function() {
 
 
         function EnterEditorMode() {
-            dom.get("#editor-container").slideDown();
+            dom.get("#editor-container").show();
             dom.get("#tools-buttons").hide();
             editor.focus()
+            // El hack mas horrible del mundo.
+            // Pero me soluciona un problema del ace editor que freakea mal
+            // win.setSize(win.getSize()[0],win.getSize()[1]-1);
+            // win.setSize(win.getSize()[0],win.getSize()[1]+1);
         }
 
         function ExitEditorMode() {
-            dom.get("#tools-buttons").slideDown();
+            dom.get("#tools-buttons").show();
             dom.get("#editor-container").hide();
         }
 
@@ -693,7 +701,6 @@ var Polargraph = (function() {
         ui.canvas.requestRenderAll();
     }
 
-    var editor, session, scriptCode;
     var _codePluginInit = function() {
         // trigger extension
         scriptCode = localStorage["scriptCode"];
@@ -721,7 +728,6 @@ var Polargraph = (function() {
             let scriptCode = editor.getValue();
             localStorage["scriptCode"] = scriptCode;
         });
-
     }
 
     // *********************
@@ -1239,13 +1245,9 @@ var Polargraph = (function() {
                     // didnt pass try catch
                     codeError = e;
                     delay = 4000;
-                    dom.get("#run-code-check-error span").html(codeError).delay(delay).html("");
-                    dom.get("#run-code-check-error").show(0).delay(delay).hide(0);
                 }
             }
 
-        } else {
-            dom.get("#run-code-check-error").show(0).delay(2000).hide(0);
         }
     }
 
@@ -1305,8 +1307,10 @@ var Polargraph = (function() {
                 _codePluginInit();
                 _UpdateBatchPercent();
                 initHasRun = true;
+
             }
         },
+        editor:editor,
         ui: ui,
         factors: factors,
         machine: machine,
@@ -1319,7 +1323,6 @@ var Polargraph = (function() {
     };
 
 })();
-
 
 var vue = new Vue({
     el: '#app',

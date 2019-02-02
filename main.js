@@ -25,7 +25,9 @@ function createWindow () {
   }
 
   win = new BrowserWindow(configuration);
+
   contents = win.webContents;
+  contents.openDevTools()
   win.maximize();
   win.show();
 

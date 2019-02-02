@@ -246,10 +246,10 @@ h2 .content, .ui.header .sub.header{
   transition-timing-function: ease-in;
   webkit-transition-timing-function: ease-in;
 }
-.editor-container{
+.editor-holder{
     position: relative;
     width: 100%;
-    height: calc(100% - 150px);
+    height: calc(100% - 60px);
 }
 #editor {
     position: absolute; /* Added */
@@ -258,8 +258,6 @@ h2 .content, .ui.header .sub.header{
     bottom: 0;
     left: 0;
     margin: 0;
-    font-family: 'Inconsolata', monospace;
-    font-size: 16px;
 }
 
 #queue-last-item{
@@ -287,9 +285,8 @@ h2 .content, .ui.header .sub.header{
     margin-left: -200px;
 }
 #editor-container{
-     display: none;
-     margin-bottom: 10px;
-     height: calc(100% - 60px);
+    height: calc(100% - 150px);
+    width: 100%;
 }
 #editor-segment{
     height:100%;

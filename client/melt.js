@@ -124,6 +124,12 @@ var Polargraph = (function() {
         isOnlySketching: true
     };
 
+    var keyboardMovementSpeed = {
+        mm      : null,
+        px      : null,
+        steps   : null
+    }
+
     var _serialInit = function() {
         let myport = settings.get('serial-path')
         if (typeof myport != "undefined") {
@@ -603,33 +609,6 @@ var Polargraph = (function() {
         });
     }
 
-    // TODO in VUE
-    var _initKeyboardControl = function() {
-        dom.get("#keyboard-input-mm").val(ui.keyboardControlDeltaPx * factors.pxToMM);
-        dom.get("#keyboard-input-px").val(ui.keyboardControlDeltaPx);
-        dom.get("#keyboard-input-steps").val(ui.keyboardControlDeltaPx * machine.stepsPerMM);
-
-        dom.get("#keyboard-input-mm").change(function() {
-            let val = $(this).val();
-            ui.keyboardControlDeltaPx = val / factors.pxToMM;
-            dom.get("#keyboard-input-px").val(ui.keyboardControlDeltaPx);
-            dom.get("#keyboard-input-steps").val(ui.keyboardControlDeltaPx * machine.stepsPerMM);
-        })
-
-        dom.get("#keyboard-input-px").change(function() {
-            ui.keyboardControlDeltaPx = $(this).val();
-            dom.get("#keyboard-input-mm").val(ui.keyboardControlDeltaPx * factors.pxToMM);
-            dom.get("#keyboard-input-steps").val(ui.keyboardControlDeltaPx * machine.stepsPerMM);
-        })
-
-        dom.get("#keyboard-input-steps").change(function() {
-            let val = $(this).val();
-            ui.keyboardControlDeltaPx = val / machine.stepsPerMM;
-            dom.get("#keyboard-input-mm").val(ui.keyboardControlDeltaPx * factors.pxToMM);
-            dom.get("#keyboard-input-px").val(ui.keyboardControlDeltaPx);
-        })
-    }
-
     var DeactivateToggles = function() {
         if (ui.toggledElement) {
             // Deselect current toggle
@@ -945,7 +924,6 @@ var Polargraph = (function() {
         factors.stepPerPx = machine.motors.rightPosPx.x / machine.widthSteps;
 
         ui.canvasNeedsRender = true;
-        _initKeyboardControl();
         resizeCanvas();
         DrawGrid();
     }
@@ -1292,6 +1270,7 @@ var Polargraph = (function() {
         factors             : factors,
         machine             : machine,
         page                : page,
+        keyboardMovementSpeed: keyboardMovementSpeed,
         AddMMCoordToQueue   : _AddMMCoordToQueue,
         SerialSend          : _SerialSend,
         AddToQueue          : _AddToQueue,
@@ -1304,6 +1283,32 @@ var vue = new Vue({
     el: '#app',
     data: {
         polargraph: Polargraph, // Synced with polargraph vars and funcs
+    },
+    computed: {
+        keyboardMM:{
+            get: function(){
+                return Polargraph.ui.keyboardControlDeltaPx * Polargraph.factors.pxToMM;
+            },
+            set: function(newVal){
+                Polargraph.ui.keyboardControlDeltaPx = newVal / Polargraph.factors.pxToMM;
+            }
+        },
+        keyboardPx:{
+            get: function(){
+                return Polargraph.ui.keyboardControlDeltaPx;
+            },
+            set: function(newVal){
+                Polargraph.ui.keyboardControlDeltaPx = newVal;
+            }
+        },
+        keyboardSteps:{
+            get: function(){
+                return Polargraph.ui.keyboardControlDeltaPx * Polargraph.machine.stepsPerMM;
+            },
+            set: function(newVal){
+                Polargraph.ui.keyboardControlDeltaPx = newVal / Polargraph.machine.stepsPerMM;
+            }
+        },
     }
 })
 

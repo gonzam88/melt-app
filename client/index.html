@@ -106,7 +106,7 @@
 							<div id="editor-container">
 								<div class="ui attached basic segment" id="editor-segment">
 
-									<div class="ui three icon buttons">
+									<div class="ui four icon buttons">
 										<!-- Code Tools and reference -->
 										<div class="ui dropdown button">
 											<i class="code icon"></i>
@@ -115,8 +115,19 @@
 												<div class="item codeTools" data-toolname="ellipse" data-toolaction="insert" >		<i class="circle outline icon"></i>Draw Ellipse</div>
 												<div class="item codeTools" data-toolname="shape" data-toolaction="insert" >		<i class="star outline icon"></i>Draw Shape</div>
 												<div class="item codeTools" data-toolname="penposition" data-toolaction="insert" >	<i class="compass outline icon"></i>Current Pen Position</div>
+												<div class="item codeTools" data-toolname="width" data-toolaction="insert" >		<i class="compass outline icon"></i>Machine Width</div>
+												<div class="item codeTools" data-toolname="height" data-toolaction="insert" >		<i class="compass outline icon"></i>Machine Height</div>
 											</div>
 										</div>
+
+										<!-- Open Examples -->
+										<div class="ui dropdown button">
+											<i class="lightbulb icon"></i>
+											<div class="menu">
+												<div class="item" v-for="file of polargraph.ui.examplesFiles" @click="Polargraph.openExample(file.filename)">{{ file.name }}</div>
+											</div>
+										</div>
+
 										<!-- Toggle Only Sketching -->
 										<div class="item checkbox-container">
 											<div class="ui checkbox">
@@ -124,16 +135,33 @@
 												<label>Sketch Only</label>
 											</div>
 										</div>
+
 										<!-- Run Code Button -->
 										<div class="ui button" id="run-code-button"><i class="play icon"></i></div>
 									</div>
 
-									<pre id="editor"></pre>
+									<div class="editor-container">
+										<pre id="editor"></pre>
+									</div>
+
+
+									<div class="ui segment" id="preview-console">
+										<div class="ui top attached label">Console</div>
+										<div id="preview-console-content">
+											<div>hola</div>
+											<div>hola</div>
+											<div>hola</div>
+											<div>hola</div>
+											<div>hola</div>
+											<div>hola</div>	
+										</div>
+
+									</div>
+
 
 								</div>
 
 
-								<div id="run-code-check-error" class="ui pointing label">Check for errors first: <span></span></div>
 
 							</div> <!-- editor container -->
 

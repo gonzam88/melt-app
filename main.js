@@ -5,6 +5,7 @@ const { app, BrowserWindow,  Menu, MenuItem } = require('electron')
 var win, contents;
 
 function createWindow () {
+
   // Create the browser window.
   var configuration;
   if(process.platform == "darwin"){

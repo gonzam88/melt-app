@@ -3,17 +3,24 @@ https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-respons
 */
 const remote = require('electron').remote;
 const win = remote.getCurrentWindow();
+const { dialog } = require('electron').remote;
+var fs = require('fs');
 
 require('electron-titlebar');
 const SerialPort = require("serialport");
 const Readline = require('@serialport/parser-readline')
 
-const {
-    app
-} = require('electron');
+const {app} = require('electron');
 const settings = require('electron-settings');
 var Mousetrap = require('mousetrap');
 var usbDetect = require('usb-detection');
+
+
+window.onerror = ErrorLog;
+function ErrorLog (msg, url, line) {
+    console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
+    return true; // avoid to display an error message in the browser
+}
 
 
 function Selector_Cache() {
@@ -121,13 +128,14 @@ var Polargraph = (function() {
         queueEmptyContent: $("#queue").html(),
         homePos: null,
         movementLine: null,
-        isOnlySketching: true
+        isOnlySketching: true,
+        examplesFiles: null,
     };
 
     var keyboardMovementSpeed = {
-        mm      : null,
-        px      : null,
-        steps   : null
+        mm: null,
+        px: null,
+        steps: null
     }
 
     var _serialInit = function() {
@@ -368,9 +376,22 @@ var Polargraph = (function() {
     }
     var _uiInit = function() {
         $('.ui.dropdown').dropdown();
-        dom.get("#sketchToggle").click(function(){
+        dom.get("#sketchToggle").click(function() {
             ui.isOnlySketching != ui.isOnlySketching
         });
+
+        // Leo los archivos dentro de la carpeta de ejemplos
+        const examplesFolder = './client/examples/';
+        const fs = require('fs');
+
+        fs.readdir(examplesFolder, (err, files) => {
+            if(files.length > 0){
+                Polargraph.ui.examplesFiles = []
+                files.forEach(file => {
+                    Polargraph.ui.examplesFiles.push({name:file, filename: examplesFolder+file})
+                });
+            }
+        })
 
         queueEmptyContent = $("#queue").html();
         // Input console
@@ -482,8 +503,10 @@ var Polargraph = (function() {
         var snippets = {
             line: "line(x1, y1, x2, y2);\n",
             ellipse: "ellipse(x, y, radio);\n",
-            shape: "beginShape();\n\// Your vertices\n\endShape();\n",
+            shape: "beginShape();\nvertex(x1,y1)\nvertex(x2,y2)\n\endShape();\n",
             penposition: "(PenPosition().x, PenPosition().y);\n",
+            width: "width\n",
+            height: "height\n",
         }
         dom.get(".codeTools").click(function() {
             let tool = $(this).data("toolname");
@@ -504,7 +527,7 @@ var Polargraph = (function() {
             UploadMachineConfig();
         })
 
-        dom.get("#resetEeprom").click(function(){
+        dom.get("#resetEeprom").click(function() {
             _AddToQueue(`C27,END`);
         })
 
@@ -628,7 +651,7 @@ var Polargraph = (function() {
         options = {
                 isGrid: true,
                 distance: 20,
-                width:  ui.canvas.width,
+                width: ui.canvas.width,
                 height: ui.canvas.height,
                 param: {
                     stroke: '#4c5669',
@@ -672,32 +695,32 @@ var Polargraph = (function() {
 
     var editor, session, scriptCode;
     var _codePluginInit = function() {
-    // trigger extension
-    scriptCode = localStorage["scriptCode"];
+        // trigger extension
+        scriptCode = localStorage["scriptCode"];
 
-    ace.require("ace/ext/language_tools");
-    editor = ace.edit("editor");
-    editor.setTheme("ace/theme/tomorrow");
-    // enable autocompletion and snippets
-    editor.setOptions({
-        enableBasicAutocompletion: true,
-        enableSnippets: true,
-        enableLiveAutocompletion: true,
-        asi: true // acepta que no haya comas
-    });
+        ace.require("ace/ext/language_tools");
+        editor = ace.edit("editor");
+        editor.setTheme("ace/theme/tomorrow");
+        // enable autocompletion and snippets
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true,
+            asi: true // acepta que no haya comas
+        });
 
-    session = editor.getSession();
-    if (scriptCode != undefined) {
-        session.setValue(scriptCode);
-    }
-    session.setMode('ace/mode/javascript');
-    session.setUseSoftTabs(true);
-    session.setTabSize(4);
+        session = editor.getSession();
+        if (scriptCode != undefined) {
+            session.setValue(scriptCode);
+        }
+        session.setMode('ace/mode/javascript');
+        session.setUseSoftTabs(true);
+        session.setTabSize(4);
 
-    session.on('change', function() {
-        let scriptCode = editor.getValue();
-        localStorage["scriptCode"] = scriptCode;
-    });
+        session.on('change', function() {
+            let scriptCode = editor.getValue();
+            localStorage["scriptCode"] = scriptCode;
+        });
 
     }
 
@@ -1230,8 +1253,8 @@ var Polargraph = (function() {
     var EvalCode = function() {
         // Elimino todos los objetos de fabric que sean de sketch
         let myItems = ui.canvas.getObjects();
-        for(let i = 0; i < myItems.length; i++ ){
-            if(myItems[i].isSketch) ui.canvas.remove(myItems[i]);
+        for (let i = 0; i < myItems.length; i++) {
+            if (myItems[i].isSketch) ui.canvas.remove(myItems[i]);
         }
 
 
@@ -1247,7 +1270,25 @@ var Polargraph = (function() {
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue
         }
+    }
 
+    var _openExample = function(filename){
+        dialog.showMessageBox({
+            type: 'question',
+            buttons: ['Yes', 'No'],
+            defaultId: 0,
+            title: 'Confirm',
+            message: 'Unsaved sketch will be lost. Are you sure you want to open the example?'
+        }, function (response) {
+            if (response === 0) { // Runs the following if 'Yes' is clicked
+                // console.log("dijo si")
+                // filename
+                fs.readFile(filename, 'utf8', function(err, contents) {
+                    session.setValue(contents); // Cargo el editor con el archivo
+                });
+
+            }
+        })
     }
 
 
@@ -1256,7 +1297,7 @@ var Polargraph = (function() {
     // Public Stuff
     return {
         init: function() {
-            if(!initHasRun){
+            if (!initHasRun) {
                 // Call Main Functions
                 _serialInit();
                 _fabricInit();
@@ -1266,14 +1307,15 @@ var Polargraph = (function() {
                 initHasRun = true;
             }
         },
-        ui                  : ui,
-        factors             : factors,
-        machine             : machine,
-        page                : page,
+        ui: ui,
+        factors: factors,
+        machine: machine,
+        page: page,
         keyboardMovementSpeed: keyboardMovementSpeed,
-        AddMMCoordToQueue   : _AddMMCoordToQueue,
-        SerialSend          : _SerialSend,
-        AddToQueue          : _AddToQueue,
+        AddMMCoordToQueue: _AddMMCoordToQueue,
+        SerialSend: _SerialSend,
+        AddToQueue: _AddToQueue,
+        openExample: _openExample,
     };
 
 })();
@@ -1285,27 +1327,27 @@ var vue = new Vue({
         polargraph: Polargraph, // Synced with polargraph vars and funcs
     },
     computed: {
-        keyboardMM:{
-            get: function(){
+        keyboardMM: {
+            get: function() {
                 return Polargraph.ui.keyboardControlDeltaPx * Polargraph.factors.pxToMM;
             },
-            set: function(newVal){
+            set: function(newVal) {
                 Polargraph.ui.keyboardControlDeltaPx = newVal / Polargraph.factors.pxToMM;
             }
         },
-        keyboardPx:{
-            get: function(){
+        keyboardPx: {
+            get: function() {
                 return Polargraph.ui.keyboardControlDeltaPx;
             },
-            set: function(newVal){
+            set: function(newVal) {
                 Polargraph.ui.keyboardControlDeltaPx = newVal;
             }
         },
-        keyboardSteps:{
-            get: function(){
+        keyboardSteps: {
+            get: function() {
                 return Polargraph.ui.keyboardControlDeltaPx * Polargraph.machine.stepsPerMM;
             },
-            set: function(newVal){
+            set: function(newVal) {
                 Polargraph.ui.keyboardControlDeltaPx = newVal / Polargraph.machine.stepsPerMM;
             }
         },
@@ -1364,16 +1406,16 @@ var sketchGroup;
 
 window.addEventListener('load', function() {
     sketchGroup = new fabric.Group();
-  sketchGroup.add(new fabric.Rect({
-      width: 200,
-      height: 200,
-      fill: 'yellow',
-      left: 20,
-      top: 20
+    sketchGroup.add(new fabric.Rect({
+        width: 200,
+        height: 200,
+        fill: 'yellow',
+        left: 20,
+        top: 20
     }));
 
     Polargraph.ui.canvas.add(sketchGroup);
-},false);
+}, false);
 
 
 
@@ -1413,21 +1455,46 @@ var TogglePen = function() {
 
 var PenPosition = function() {
     // returns pen position in mm (converted from ui.penPositionPixels)
-    p = new Victor(ui.penPositionPixels.x * factors.pxToMM, ui.penPositionPixels.y * factors.pxToMM);
+    p = new Victor(Polargraph.ui.penPositionPixels.x * Polargraph.factors.pxToMM,
+        Polargraph.ui.penPositionPixels.y * Polargraph.factors.pxToMM);
     return p;
 }
+
+
+Object.defineProperties(this, {
+    width: {
+        get: function() {
+            return Polargraph.machine.widthMM;
+        },
+        set: function() {
+            return;
+        }
+    },
+    height: {
+        get: function() {
+            return Polargraph.machine.heightMM;
+        },
+        set: function() {
+            return;
+        }
+    }
+});
+
 
 var line = function(x1, y1, x2, y2, thickness = 1) {
     /// <summary>Draws a line from (x1, y1) to (x2, y2). Positions should be set in millimetres. Warning! If called between StartPath() and EndPath(), pen will not be raised when moving to starting coordinate</summary>
 
-    Polargraph.ui.canvas.add( new fabric.Line([
+    Polargraph.ui.canvas.add(new fabric.Line([
         x1 * Polargraph.factors.mmToPx,
         y1 * Polargraph.factors.mmToPx,
         x2 * Polargraph.factors.mmToPx,
         y2 * Polargraph.factors.mmToPx
-    ], {stroke: 'rgba(255,255,255,.5)', isSketch: true}));
+    ], {
+        stroke: 'rgba(255,255,255,.5)',
+        isSketch: true
+    }));
 
-    if(!Polargraph.ui.isOnlySketching){
+    if (!Polargraph.ui.isOnlySketching) {
         if (thickness < 1) thickness = 1;
         thickness = parseInt(thickness);
 
@@ -1453,57 +1520,72 @@ var line = function(x1, y1, x2, y2, thickness = 1) {
 }
 
 var ellipse = function(x, y, r, res = 100) {
-    // console.time("ellipse");
-    res = Math.round(res);
-    if (res < 3) res = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
-    var cachedFirstVx;
-    PenUp();
-    // I generete an array of points that create the circle
-    for (let i = 0; i < res; i++) {
-        let angle = map(i, 0, res, 0, 2 * Math.PI);
-        let posX = (r * Math.cos(angle)) + x;
-        let posY = (r * Math.sin(angle)) + y;
-        if (i == 0) {
-            cachedFirstVx = new Victor(posX, posY);
-        } else if (i == 1) {
-            // After the moving to the first vertex I start drawing
-            PenDown();
+    // TODO draw Fabric.js ellipse
+    if (!Polargraph.ui.isOnlySketching) {
+        res = Math.round(res);
+        if (res < 3) res = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
+        var cachedFirstVx;
+        PenUp();
+        // I generete an array of points that create the circle
+        for (let i = 0; i < res; i++) {
+            let angle = map(i, 0, res, 0, 2 * Math.PI);
+            let posX = (r * Math.cos(angle)) + x;
+            let posY = (r * Math.sin(angle)) + y;
+            if (i == 0) {
+                cachedFirstVx = new Victor(posX, posY);
+            } else if (i == 1) {
+                // After the moving to the first vertex I start drawing
+                PenDown();
+            }
+            Polargraph.AddMMCoordToQueue(posX, posY);
         }
-        Polargraph.AddMMCoordToQueue(posX, posY);
+        // After the circle is complete i have to go back to the first vertex position
+        // console.timeEnd("ellipse");
+        Polargraph.AddMMCoordToQueue(cachedFirstVx.x, cachedFirstVx.y);
+        PenUp();
     }
-    // After the circle is complete i have to go back to the first vertex position
-    // console.timeEnd("ellipse");
-    Polargraph.AddMMCoordToQueue(cachedFirstVx.x, cachedFirstVx.y);
-    PenUp();
 }
 
+var isShapeFirstVertex;
+var shapeSketchVertices;
 
+var beginShape = function() {
+    shapeSketchVertices = [];
 
+    if (!Polargraph.ui.isOnlySketching) {
+        isDrawingPath = true;
+        isShapeFirstVertex = true;
+        PenUp();
+    }
+}
+var vertex = function(posX, posY) {
+    shapeSketchVertices.push({
+        x: posX * Polargraph.factors.mmToPx,
+        y: posY * Polargraph.factors.mmToPx
+    })
 
-
-function TenPrint() {
-    var xoff = PenPosition().x,
-        yoff = PenPosition().y;
-    var grid = 2;
-    var alto = 330,
-        ancho = 490;
-
-    for (let i = 0; i < ancho / grid; i++) {
-        for (let j = 0; j < alto / grid; j++) {
-            PickOne() ? LtR(i * grid, j * grid) : RtL(i * grid, j * grid);
+    if (!Polargraph.ui.isOnlySketching) {
+        Polargraph.AddMMCoordToQueue(posX, posY);
+        if (isShapeFirstVertex) {
+            PenDown();
+            isShapeFirstVertex = false;
         }
     }
+}
+var endShape = function() {
+    Polargraph.ui.canvas.add(
+        new fabric.Polygon(shapeSketchVertices, {
+            stroke: 'rgba(255,255,255,.5)',
+            isSketch: true,
+            fill: 'transparent',
+            originX: 'left',
+            originY: 'top',
+        })
+    );
 
-    function PickOne() {
-        return Math.floor(Math.random() * 2) ? true : false;
-    }
-
-    function RtL(x, y) {
-        line(x + xoff, y + yoff, x + xoff + grid, y + yoff + grid);
-    }
-
-    function LtR(x, y) {
-        line(x + xoff + grid, y + yoff, x + xoff, y + yoff + grid);
+    if (!Polargraph.ui.isOnlySketching) {
+        isDrawingPath = false;
+        PenUp();
     }
 }
 

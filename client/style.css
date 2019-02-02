@@ -246,30 +246,23 @@ h2 .content, .ui.header .sub.header{
   transition-timing-function: ease-in;
   webkit-transition-timing-function: ease-in;
 }
-
-/* start css magic */
-/* Dont display more than 50 items in queue */
-/* .queue.item:nth-child(50):after{
-	content:"...";
-} */
-/* .queue.item:nth-child(n+51){
-	display:none;
-} */
-/* end css magic */
-
-
+.editor-container{
+    position: relative;
+    width: 100%;
+    height: calc(100% - 150px);
+}
 #editor {
-    margin: 0;
-    position: absolute;
-    top: 37px;
+    position: absolute; /* Added */
+    top: 0;
+    right: 0;
     bottom: 0;
     left: 0;
-    right: 0;
+    margin: 0;
     font-family: 'Inconsolata', monospace;
     font-size: 16px;
 }
 
-#run-code-check-error, #queue-last-item{
+#queue-last-item{
 	display: none;
 }
 
@@ -296,12 +289,28 @@ h2 .content, .ui.header .sub.header{
 #editor-container{
      display: none;
      margin-bottom: 10px;
+     height: calc(100% - 60px);
 }
 #editor-segment{
-    height: calc(100vh - 250px);
-    margin-top: 10px;
-    padding: 0;
-    border: none
+    height:100%;
+    padding: unset;
+}
+#preview-console{
+    margin: unset;
+    background-color: #EEEEEE;
+    padding: unset;
+}
+#preview-console-content{
+    height: 140px;
+    overflow-y: scroll;
+}
+
+#preview-console-content > div{
+    padding: .5rem 1rem;
+    color: rgb(209, 21, 24);
+    background-color: rgb(255, 240, 240);
+    border-top: 1px solid rgb(255, 214, 214);
+    border-bottom: 1px solid rgb(255, 214, 214);
 }
 
 #keyboard-control-container .labeled {
@@ -342,11 +351,17 @@ h2 .content, .ui.header .sub.header{
 }
 .checkbox-container{
     flex: 1 auto;
-    padding: 11px;
     background-color: #e0e1e2;
-    border: 1px solid #cac8c8;
     border-top: none;
+    vertical-align: middle;
+    padding-top: 11px;
+}
+.checkbox-container label{
+	font-size: 12px !important;
 }
 #editor-container .dropdown.button{
 	text-align: center;
+}
+.ui.attached.segment{
+    border: none;
 }

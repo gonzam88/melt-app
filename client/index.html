@@ -246,66 +246,66 @@
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Machine Height (mm)</div>
-								<input type="number" placeholder="800" id="inputMachineHeight">
+								<input type="number" placeholder="800" id="inputMachineHeight" v-model="polargraph.machine.heightMM">
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">mm per Rev</div>
-								<input type="number" placeholder="32" id="inputMmPerRev">
+								<input type="number" placeholder="32" id="inputMmPerRev" v-model="polargraph.machine.mmPerRev">
 
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Steps per Rev</div>
-								<input type="number" placeholder="800" id="inputStepsPerRev">
+								<input type="number" placeholder="800" id="inputStepsPerRev" v-model="polargraph.machine.stepsPerRev">
 
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Step Multiplier</div>
-								<input type="number" placeholder="16" id="inputStepMultiplier">
+								<input type="number" placeholder="16" id="inputStepMultiplier" v-model="polargraph.machine.stepMultiplier">
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Pen Down Position</div>
-								<input type="number" placeholder="90" id="inputDownPos">
+								<input type="number" placeholder="90" id="inputDownPos" v-model="polargraph.machine.downPos">
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Pen Up Position</div>
-								<input type="number" placeholder="180" id="inputUpPos">
+								<input type="number" placeholder="180" id="inputUpPos" v-model="polargraph.machine.upPos">
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Max Speed</div>
-								<input type="number" placeholder="200" id="inputMaxSpeed">
+								<input type="number" placeholder="200" id="inputMaxSpeed" v-model="polargraph.machine.motors.maxSpeed">
 							</div>
 
 							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Acceleration</div>
-								<input type="number" placeholder="400" id="inputAcceleration">
+								<input type="number" placeholder="400" id="inputAcceleration" v-model="polargraph.machine.motors.acceleration">
 							</div>
 
 							<h5>Calculated</h5>
 
-							<div class="ui fluid right labeled input disabled">
+							<div class="ui fluid right labeled input ">
 								<div class="ui basic label">MM per Step</div>
-								<input type="number" placeholder="0.16" id="inputMmPerStep">
+								<input disabled type="number" placeholder="0.16" id="inputMmPerStep" v-model="polargraph.machine.mmPerStep">
 							</div>
 
-							<div class="ui fluid right labeled input disabled">
+							<div class="ui fluid right labeled input ">
 								<div class="ui basic label">Steps Per MM</div>
-								<input type="number" placeholder="6.25" id="inputStepsPerMM">
+								<input disabled type="number" placeholder="6.25" id="inputStepsPerMM" v-model="polargraph.machine.stepsPerMM">
 							</div>
 
-							<div class="ui fluid right labeled input disabled">
+							<div class="ui fluid right labeled input ">
 								<div class="ui basic label">Page Width (steps)</div>
-								<input type="number" placeholder="200" id="inputPageWidthSteps">
+								<input disabled type="number" placeholder="200" id="inputPageWidthSteps" v-model="polargraph.page.width">
 							</div>
 
-							<div class="ui fluid right labeled input disabled">
+							<div class="ui fluid right labeled input">
 								<div class="ui basic label">Page Height (steps)</div>
-								<input type="number" placeholder="400" id="inputPageHeightSteps">
+								<input disabled type="number" placeholder="400" id="inputPageHeightSteps" v-model="polargraph.page.height">
 							</div>
 
 							<div class="ui divider"></div>
@@ -328,8 +328,7 @@
 
 							<h5>More Tools</h5>
 							<div class="ui fluid vertical labeled icon buttons">
-								<button class="ui disabled button"><i class="bomb icon"></i> Reset Machine</button>
-								<button class="ui disabled button"><i class="recycle icon"></i> Reset EEPROM</button>
+								<button class="ui button" id="resetEeprom"><i class="bomb icon"></i> Reset EEPROM</button>
 							</div>
 
 

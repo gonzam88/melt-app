@@ -498,6 +498,11 @@ var Polargraph = (function() {
             UploadMachineConfig();
         })
 
+        dom.get("#resetEeprom").click(function(){
+            _AddToQueue(`C27,END`);
+        })
+
+
         function EnterEditorMode() {
             dom.get("#editor-container").slideDown();
             dom.get("#tools-buttons").hide();
@@ -1286,6 +1291,7 @@ var Polargraph = (function() {
         ui                  : ui,
         factors             : factors,
         machine             : machine,
+        page                : page,
         AddMMCoordToQueue   : _AddMMCoordToQueue,
         SerialSend          : _SerialSend,
         AddToQueue          : _AddToQueue,

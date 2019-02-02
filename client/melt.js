@@ -35,10 +35,6 @@ function Selector_Cache() {
 }
 var dom = new Selector_Cache();
 
-function map(x, in_min, in_max, out_min, out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
 function p(txt) {
     // just a lazy shortcut
     console.log(txt);
@@ -124,10 +120,11 @@ var Polargraph = (function() {
         homeSquare: null,
         queueEmptyContent: $("#queue").html(),
         homePos: null,
-        movementLine: null
+        movementLine: null,
+        isOnlySketching: true
     };
 
-    var serialInit = function() {
+    var _serialInit = function() {
         let myport = settings.get('serial-path')
         if (typeof myport != "undefined") {
             SerialConnectTo(myport)
@@ -163,7 +160,7 @@ var Polargraph = (function() {
             console.warn("Web worker not allowed 👨‍🏭 Plotter will run slow if tab is in background or computer fell asleep 😴");
         }
     }
-    var fabricInit = function() {
+    var _fabricInit = function() {
         ui.canvas = new fabric.Canvas('myCanvas');
         ui.canvas.freeDrawingBrush.color = "purple";
         ui.canvas.freeDrawingBrush.width = .5;
@@ -348,14 +345,14 @@ var Polargraph = (function() {
             for (let i = 0; i < points.length; i++) {
                 if (i == 0) {
                     // Es el primer punto
-                    melt.PenUp();
+                    PenUp();
                     AddPixelCoordToQueue(points[i][2], points[i][1]);
-                    melt.PenDown();
+                    PenDown();
 
                 } else if (i == points.length - 1) {
                     // es el ultimo punto
                     AddPixelCoordToQueue(points[i][2], points[i][1]);
-                    melt.PenUp();
+                    PenUp();
                 } else {
                     // Es un punto normal
                     AddPixelCoordToQueue(points[i][2], points[i][1]);
@@ -363,7 +360,9 @@ var Polargraph = (function() {
             }
         });
     }
-    var uiInit = function() {
+    var _uiInit = function() {
+        $('.ui.dropdown').dropdown();
+        
         queueEmptyContent = $("#queue").html();
         // Input console
         dom.get("#consoleInput").keyup(function(e) {
@@ -437,11 +436,11 @@ var Polargraph = (function() {
         })
 
         dom.get("#pen-lift").click(function() {
-            melt.PenUp(true); // True sets to now instead of queue
+            PenUp(true); // True sets to now instead of queue
         })
 
         dom.get("#pen-drop").click(function() {
-            melt.PenDown(true); // True sets to now instead of queue
+            PenDown(true); // True sets to now instead of queue
         })
 
         $('#pause-queue').click(function() {
@@ -471,32 +470,10 @@ var Polargraph = (function() {
             CheckCode();
         })
 
-        dom.get(".run-code-updown").click(function() {
-            if ($(this).children().hasClass("up")) {
-                codeRepetitions++;
-            } else {
-                if (codeRepetitions > 0) codeRepetitions--;
-            }
-            refButton();
-        })
-
-        function refButton() {
-            let txt = "";
-            if (codeRepetitions == 0) {
-                txt = "Draw forever";
-            } else if (codeRepetitions == 1) {
-                txt = "Draw once";
-            } else {
-                txt = "Draw " + codeRepetitions + " times";
-            }
-            dom.get("#run-code-button span").html(txt);
-        }
-        refButton();
-
         var snippets = {
-            line: "melt.line(x1, y1, x2, y2);",
-            ellipse: "melt.ellipse(x, y, radio);",
-            shape: "melt.beginShape();\n\// Your vertices\n\melt.endShape();",
+            line: "line(x1, y1, x2, y2);",
+            ellipse: "ellipse(x, y, radio);",
+            shape: "beginShape();\n\// Your vertices\n\endShape();",
             penposition: "(PenPosition().x, PenPosition().y);",
         }
         dom.get(".codeTools").click(function() {
@@ -561,10 +538,10 @@ var Polargraph = (function() {
 
         // Setting the callbacks to their specific actions
         dom.get("#tools-free-draw").on("toggleSelect", function() {
-            canvas.isDrawingMode = true;
+            ui.canvas.isDrawingMode = true;
         })
         dom.get("#tools-free-draw").on("toggleDeselect", function() {
-            canvas.isDrawingMode = true;
+            ui.canvas.isDrawingMode = true;
         })
 
         dom.get("#control-pen-position").on("toggleSelect", function() {
@@ -614,10 +591,12 @@ var Polargraph = (function() {
 
         Mousetrap.bind('space', function() {
             if (!ui.isKeyboardControlling || !machine.isReady) return
-            melt.TogglePen();
+            TogglePen();
         });
     }
-    var initKeyboardControl = function() {
+
+    // TODO in VUE
+    var _initKeyboardControl = function() {
         dom.get("#keyboard-input-mm").val(ui.keyboardControlDeltaPx * factors.pxToMM);
         dom.get("#keyboard-input-px").val(ui.keyboardControlDeltaPx);
         dom.get("#keyboard-input-steps").val(ui.keyboardControlDeltaPx * machine.stepsPerMM);
@@ -705,35 +684,33 @@ var Polargraph = (function() {
     }
 
     var editor, session, scriptCode;
-    var codePluginInit = function() {
-        // flask = new CodeFlask('#myFlask', { language: 'js', lineNumbers: true });
-        // flask.updateCode('"use strict";\n');
-        // trigger extension
-        scriptCode = localStorage["scriptCode"];
+    var _codePluginInit = function() {
+    // trigger extension
+    scriptCode = localStorage["scriptCode"];
 
-        ace.require("ace/ext/language_tools");
-        editor = ace.edit("editor");
-        editor.setTheme("ace/theme/tomorrow");
-        // enable autocompletion and snippets
-        editor.setOptions({
-            enableBasicAutocompletion: true,
-            enableSnippets: true,
-            enableLiveAutocompletion: true,
-            asi: true // acepta que no haya comas
-        });
-        session = editor.getSession();
-        if (scriptCode != undefined) {
-            session.setValue(scriptCode);
-        }
-        session.setMode('ace/mode/javascript');
-        session.setUseSoftTabs(true);
-        session.setTabSize(4);
+    ace.require("ace/ext/language_tools");
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/tomorrow");
+    // enable autocompletion and snippets
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+        asi: true // acepta que no haya comas
+    });
 
+    session = editor.getSession();
+    if (scriptCode != undefined) {
+        session.setValue(scriptCode);
+    }
+    session.setMode('ace/mode/javascript');
+    session.setUseSoftTabs(true);
+    session.setTabSize(4);
 
-        session.on('change', function() {
-            let scriptCode = editor.getValue();
-            localStorage["scriptCode"] = scriptCode;
-        });
+    session.on('change', function() {
+        let scriptCode = editor.getValue();
+        localStorage["scriptCode"] = scriptCode;
+    });
 
     }
 
@@ -742,7 +719,7 @@ var Polargraph = (function() {
     // Serial & Socket Communication
     //
     // *********************
-    var SerialSend = function(cmd) {
+    var _SerialSend = function(cmd) {
         serial.port.write(cmd + '\n');
         statusIcon.element.html(statusIcon.working);
         machine.isReady = false;
@@ -960,7 +937,7 @@ var Polargraph = (function() {
         factors.stepPerPx = machine.motors.rightPosPx.x / machine.widthSteps;
 
         ui.canvasNeedsRender = true;
-        initKeyboardControl();
+        _initKeyboardControl();
         resizeCanvas();
         DrawGrid();
     }
@@ -980,7 +957,7 @@ var Polargraph = (function() {
         let rightMotorDist = ui.penPositionPixels.distance(machine.motors.rightPosPx) * factors.pxPerStep;
 
         let cmd = "C09," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",END";
-        SerialSend(cmd);
+        _SerialSend(cmd);
         dom.get("#return-home").removeClass("disabled");
         dom.get("#control-pen-position").removeClass("disabled");
     }
@@ -1013,26 +990,26 @@ var Polargraph = (function() {
         // console.timeEnd("SetNextPenPositionPixels");
 
         if (skipQueue) {
-            SerialSend(cmd); // cheating the queue.. im in a hurry!!
+            _SerialSend(cmd); // cheating the queue.. im in a hurry!!
         } else {
-            AddToQueue(cmd);
+            _AddToQueue(cmd);
         }
     }
-    var AddMMCoordToQueue = function(x, y) {
+    var _AddMMCoordToQueue = function(x, y) {
         let pos = new Victor(x * factors.mmToPx, y * factors.mmToPx);
 
         let leftMotorDist = pos.distance(machine.motors.leftPosPx) * factors.pxPerStep;
         let rightMotorDist = pos.distance(machine.motors.rightPosPx) * factors.pxPerStep;
         // console.log(pos, leftMotorDist, rightMotorDist, factors.pxPerStep);
         let cmd = "C17," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",2,END";
-        AddToQueue(cmd);
+        _AddToQueue(cmd);
     }
     var AddPixelCoordToQueue = function(x, y) {
         let pos = new Victor(x * factors.pxPerStep, y * factors.pxPerStep);
         let leftMotorDist = pos.distance(leftMotorPositionSteps);
         let rightMotorDist = pos.distance(rightMotorPositionSteps);
         let cmd = "C17," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",2,END";
-        AddToQueue(cmd);
+        _AddToQueue(cmd);
     }
     var UpdatePositionMetadata = function(vec) {
         // Linea Motor
@@ -1063,17 +1040,17 @@ var Polargraph = (function() {
     }
     var UploadMachineConfig = function() {
         // Set machine size
-        AddToQueue(`C24,${machine.widthMM},${machine.heightMM},END`);
+        _AddToQueue(`C24,${machine.widthMM},${machine.heightMM},END`);
         // Set machine millimetre extension per motor revolution (MM Per Rev)
-        AddToQueue(`C29,${machine.mmPerRev},END`);
+        _AddToQueue(`C29,${machine.mmPerRev},END`);
         // Set motor steps per revolution:
-        AddToQueue(`C30,${machine.stepsPerRev},END`);
+        _AddToQueue(`C30,${machine.stepsPerRev},END`);
         // maximum motor speed
-        AddToQueue(`C31,${machine.motors.maxSpeed},END`);
+        _AddToQueue(`C31,${machine.motors.maxSpeed},END`);
         //  motor Acceleration
-        AddToQueue(`C32,${machine.motors.acceleration},END`);
+        _AddToQueue(`C32,${machine.motors.acceleration},END`);
         // step multiplier
-        AddToQueue(`C37,${machine.stepMultiplier},END`);
+        _AddToQueue(`C37,${machine.stepMultiplier},END`);
     }
     var OnMachineReady = function() {
         // Fired when receives a 'ready' message from machine
@@ -1088,7 +1065,7 @@ var Polargraph = (function() {
                 ui.waitingReadyAfterPause = false;
                 batchDone++;
                 if (batchDone >= batchTotal) QueueBatchComplete();
-                UpdateBatchPercent();
+                _UpdateBatchPercent();
             }
         }
 
@@ -1123,7 +1100,7 @@ var Polargraph = (function() {
                     });
                     ui.movementLine.visible = true;
                 }
-                SerialSend(commandString);
+                _SerialSend(commandString);
 
                 $('#queue .item').first().remove();
                 if (machine.queue.length > queueUiLength) {
@@ -1134,7 +1111,7 @@ var Polargraph = (function() {
 
                 if (machine.queue.length == 0) {
                     // Queue & Batch have just finished
-                    UpdateBatchPercent();
+                    _UpdateBatchPercent();
                     if (showNotificationOnFinish) {
                         let myNotification = new Notification('Drawing Finished', {
                             body: 'Queue is empty again'
@@ -1155,7 +1132,7 @@ var Polargraph = (function() {
             ui.canvasNeedsRender = false;
         }
     }
-    var AddToQueue = function(cmd) {
+    var _AddToQueue = function(cmd) {
         if (cmd == lastQueueCmd) return "Command ignored for being identical to previous"; // Avoid two equal commands to be sent
         machine.queue.push(cmd);
         lastQueueCmd = cmd;
@@ -1175,7 +1152,7 @@ var Polargraph = (function() {
         batchDone = 0,
         batchPercent = 0;
     var millisBatchStarted, millisBatchEnded, batchCompleted = false;
-    var UpdateBatchPercent = function() {
+    var _UpdateBatchPercent = function() {
         // TODO: show elapsed time
         let newBatchPercent;
 
@@ -1234,22 +1211,81 @@ var Polargraph = (function() {
         statusIcon.element.html(statusIcon.success);
         EnableWorkspace();
         $('.ui.basic.modal').modal('hide');
-        SerialSend("C26,END");
+        _SerialSend("C26,END");
         console.log(`Succesfully connected ✏️ to Polargraph`);
         settings.set('serial-path', serialPathConnected); // save in local config
     }
+    var codeError = "";
+    var codeStr;
+    var codeRepetitions = 1,
+        remainingCodeRepetitions;
+
+    var CheckCode = function() {
+        if (session.getAnnotations().length == 0) {
+            codeStr = editor.getValue();
+            try {
+                EvalCode()
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    // didnt pass try catch
+                    codeError = e;
+                    delay = 4000;
+                    dom.get("#run-code-check-error span").html(codeError).delay(delay).html("");
+                    dom.get("#run-code-check-error").show(0).delay(delay).hide(0);
+                }
+            }
+
+        } else {
+            dom.get("#run-code-check-error").show(0).delay(2000).hide(0);
+        }
+    }
+
+    var attachedScript;
+    var EvalCode = function() {
+        // Elimino todos los objetos de fabric que sean de sketch
+        let myItems = ui.canvas.getObjects();
+        for(let i = 0; i < myItems.length; i++ ){
+            if(myItems[i].isSketch) ui.canvas.remove(myItems[i]);
+        }
+
+
+        showNotificationOnFinish = true;
+        console.log('Code Run @ ' + new Date());
+        // eval(codeStr); // Actually interprets string as javascript
+        if (attachedScript !== undefined) attachedScript.remove();
+        attachedScript = document.createElement("script");
+        attachedScript.text = codeStr;
+        var firstScriptTag = document.getElementsByTagName("script")[1];
+        firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
+
+        if (machine.queue.length == 0) {
+            // the code executed succesfully but theres nothing on the queue
+        }
+
+    }
+
+
+    var initHasRun = false;
 
     // Public Stuff
     return {
         init: function() {
-            // Call Main Functions
-            serialInit();
-            fabricInit();
-            uiInit();
-            codePluginInit();
-            UpdateBatchPercent();
+            if(!initHasRun){
+                // Call Main Functions
+                _serialInit();
+                _fabricInit();
+                _uiInit();
+                _codePluginInit();
+                _UpdateBatchPercent();
+                initHasRun = true;
+            }
         },
-        machine: machine
+        ui                  : ui,
+        factors             : factors,
+        machine             : machine,
+        AddMMCoordToQueue   : _AddMMCoordToQueue,
+        SerialSend          : _SerialSend,
+        AddToQueue          : _AddToQueue,
     };
 
 })();
@@ -1258,13 +1294,14 @@ var Polargraph = (function() {
 var vue = new Vue({
     el: '#app',
     data: {
-        polargraph: Polargraph,
+        polargraph: Polargraph, // Synced with polargraph vars and funcs
     }
 })
 
 window.addEventListener('load', function() {
-    Polargraph.init()
-    console.log("Polargraph. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar");
+    Polargraph.init(); // Call the starting function
+    console.log("Polargraph. Made with 💚 by Gonzalo Moiguer 🇦🇷 https://www.gonzamoiguer.com.ar"); // Say hi
+
 }, false)
 
 
@@ -1276,7 +1313,7 @@ window.addEventListener('load', function() {
 //
 // ***********************
 // Same command vars as polargraph_server_a1.ino
-var CMDS = {
+const CMDS = {
     "CHANGELENGTH": "C01",
     "CHANGEPENWIDTH": "C02",
     "DRAWPIXEL": "C05",
@@ -1297,13 +1334,10 @@ var CMDS = {
     "SETMOTORACCEL": "C32",
     "SETMACHINESTEPMULTIPLIER": "C37"
 }
-Object.freeze(CMDS)
-
-
 
 // ***********************
 //
-// Polargraph Drawing Functions
+// Melt Drawing Functions
 //
 // ***********************
 
@@ -1312,194 +1346,130 @@ var meltEvents = document.createTextNode(null);
 
 var plotterReadyEvent = new Event("plotterReady");
 
-const Melt = class {
-    // Drawing Functions
-    //
-    // They try to mimic the p5.js reference
-    //
-    constructor() {
-        this.isDrawingPath = false;
-        this.isPenUp = true;
-        // if set to true it wont move the pen up and down after each shape
-    }
+var sketchGroup;
 
-    // ready event
-    Log(str) {
-        // Will add a log to queue, which will console log when it reaches its time
-        AddToQueue({
-            cmd: "log",
-            msg: str
-        });
-    }
-    BeginShape() {
-        this.isDrawingPath = true;
-    }
-    EndShape() {
-        this.isDrawingPath = false;
-    }
-    PenUp(now = false) { // the now param sends command right away. Otherwise, it is queued
-        if (now) {
-            SerialSend("C14,UP,END");
-        } else {
-            AddToQueue("C14,UP,END"); // pen down
-        }
-        this.isPenUp = true;
-    }
-    PenDown(now = false) { // the now param sends command right away. Otherwise, it is queued
-        if (now) {
-            SerialSend("C13,DOWN,END");
-        } else {
-            AddToQueue("C13,DOWN,END"); // pen down
-        }
-        this.isPenUp = false;
-    }
+window.addEventListener('load', function() {
+    sketchGroup = new fabric.Group();
+  sketchGroup.add(new fabric.Rect({
+      width: 200,
+      height: 200,
+      fill: 'yellow',
+      left: 20,
+      top: 20
+    }));
 
-    TogglePen() {
-        if (this.isPenUp) {
-            this.PenDown(true);
-        } else {
-            this.PenUp(true);
-        }
-        this.isPenUp != this.isPenUp;
-    }
+    Polargraph.ui.canvas.add(sketchGroup);
+},false);
 
-    PenPosition() {
-        // returns pen position in mm (converted from ui.penPositionPixels)
-        p = new Victor(ui.penPositionPixels.x * factors.pxToMM, ui.penPositionPixels.y * factors.pxToMM);
-        return p;
-    }
 
-    line(x1, y1, x2, y2, thickness = 1) {
-        /// <summary>Draws a line from (x1, y1) to (x2, y2). Positions should be set in millimetres. Warning! If called between StartPath() and EndPath(), pen will not be raised when moving to starting coordinate</summary>
+
+
+function map(x, in_min, in_max, out_min, out_max) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+var isDrawingPath = false;
+var isPenUp = true;
+
+var PenUp = function(now = false) { // the now param sends command right away. Otherwise, it is queued
+    if (now) {
+        Polargraph.SerialSend("C14,UP,END");
+    } else {
+        Polargraph.AddToQueue("C14,UP,END"); // pen down
+    }
+    isPenUp = true;
+}
+var PenDown = function(now = false) { // the now param sends command right away. Otherwise, it is queued
+    if (now) {
+        Polargraph.SerialSend("C13,DOWN,END");
+    } else {
+        Polargraph.AddToQueue("C13,DOWN,END"); // pen down
+    }
+    isPenUp = false;
+}
+
+var TogglePen = function() {
+    if (isPenUp) {
+        PenDown(true);
+    } else {
+        PenUp(true);
+    }
+    isPenUp != isPenUp;
+}
+
+var PenPosition = function() {
+    // returns pen position in mm (converted from ui.penPositionPixels)
+    p = new Victor(ui.penPositionPixels.x * factors.pxToMM, ui.penPositionPixels.y * factors.pxToMM);
+    return p;
+}
+
+var line = function(x1, y1, x2, y2, thickness = 1) {
+    /// <summary>Draws a line from (x1, y1) to (x2, y2). Positions should be set in millimetres. Warning! If called between StartPath() and EndPath(), pen will not be raised when moving to starting coordinate</summary>
+
+    Polargraph.ui.canvas.add( new fabric.Line([
+        x1 * Polargraph.factors.mmToPx,
+        y1 * Polargraph.factors.mmToPx,
+        x2 * Polargraph.factors.mmToPx,
+        y2 * Polargraph.factors.mmToPx
+    ], {stroke: 'rgba(255,255,255,.5)', isSketch: true}));
+
+    if(!Polargraph.ui.isOnlySketching){
         if (thickness < 1) thickness = 1;
         thickness = parseInt(thickness);
 
-        if (!this.isDrawingPath) {
-            this.PenUp();
+        if (!isDrawingPath) {
+            PenUp();
         }
-
         // Width means going over the same line several times
         for (let i = 0; i < thickness; i++) {
             if (isEven(i) && thickness > 1) {
-                AddMMCoordToQueue(x2, y2);
-                if (i == 0) this.PenDown();
-                AddMMCoordToQueue(x1, y1);
+                Polargraph.AddMMCoordToQueue(x2, y2);
+                if (i == 0) PenDown();
+                Polargraph.AddMMCoordToQueue(x1, y1);
             } else {
-                AddMMCoordToQueue(x1, y1);
-                if (i == 0) this.PenDown();
-                AddMMCoordToQueue(x2, y2);
+                Polargraph.AddMMCoordToQueue(x1, y1);
+                if (i == 0) PenDown();
+                Polargraph.AddMMCoordToQueue(x2, y2);
             }
         }
-
-        if (!this.isDrawingPath) {
-            this.PenUp();
+        if (!isDrawingPath) {
+            PenUp();
         }
     }
+}
 
-    ellipse(x, y, r, res = 100) {
-        // console.time("ellipse");
-        res = Math.round(res);
-        if (res < 3) res = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
-        this.cachedFirstVx;
-        this.PenUp();
-        // I generete an array of points that create the circle
-        for (let i = 0; i < res; i++) {
-            let angle = map(i, 0, res, 0, 2 * Math.PI);
-            let posX = (r * Math.cos(angle)) + x;
-            let posY = (r * Math.sin(angle)) + y;
-            if (i == 0) {
-                this.cachedFirstVx = new Victor(posX, posY);
-            } else if (i == 1) {
-                // After the moving to the first vertex I start drawing
-                this.PenDown();
-            }
-            AddMMCoordToQueue(posX, posY);
+var ellipse = function(x, y, r, res = 100) {
+    // console.time("ellipse");
+    res = Math.round(res);
+    if (res < 3) res = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
+    var cachedFirstVx;
+    PenUp();
+    // I generete an array of points that create the circle
+    for (let i = 0; i < res; i++) {
+        let angle = map(i, 0, res, 0, 2 * Math.PI);
+        let posX = (r * Math.cos(angle)) + x;
+        let posY = (r * Math.sin(angle)) + y;
+        if (i == 0) {
+            cachedFirstVx = new Victor(posX, posY);
+        } else if (i == 1) {
+            // After the moving to the first vertex I start drawing
+            PenDown();
         }
-        // After the circle is complete i have to go back to the first vertex position
-        // console.timeEnd("ellipse");
-        AddMMCoordToQueue(this.cachedFirstVx.x, this.cachedFirstVx.y);
-        this.PenUp();
+        Polargraph.AddMMCoordToQueue(posX, posY);
     }
+    // After the circle is complete i have to go back to the first vertex position
+    // console.timeEnd("ellipse");
+    Polargraph.AddMMCoordToQueue(cachedFirstVx.x, cachedFirstVx.y);
+    PenUp();
 }
 
-var codeError = "";
-var codeStr;
-// var isRunningCode = false;
-var codeRepetitions = 1,
-    remainingCodeRepetitions; //isRunningCodeForever = false;
 
-function CheckCode() {
 
-    if (session.getAnnotations().length == 0) {
-        codeStr = editor.getValue();
-        try { // This is a second test
-            StartedDrawingCode()
-            EvalCode()
-        } catch (e) {
-            if (e instanceof SyntaxError) {
-                // didnt pass try catch
-                codeError = e;
-                delay = 4000;
-                dom.get("#run-code-check-error span").html(codeError).delay(delay).html("");
-                dom.get("#run-code-check-error").show(0).delay(delay).hide(0);
-            }
-        }
 
-    } else {
-        dom.get("#run-code-check-error").show(0).delay(2000).hide(0);
-    }
-}
-
-var attachedScript;
-
-function EvalCode() {
-    showNotificationOnFinish = true;
-    console.log('Code Run @ ' + new Date());
-    // eval(codeStr); // Actually interprets string as javascript
-    if (attachedScript !== undefined) attachedScript.remove();
-    attachedScript = document.createElement("script");
-    attachedScript.text = codeStr;
-    var firstScriptTag = document.getElementsByTagName("script")[1];
-    firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
-
-    dom.get("#remaining-repetitions span").html(remainingCodeRepetitions);
-    console
-    if (machine.queue.length == 0) {
-        // the code executed succesfully but theres nothing on the queue
-        EndedDrawingCode();
-    }
-}
-
-function StartedDrawingCode() {
-    if (codeRepetitions == 0) {
-        isRunningCodeForever = true;
-        // dom.get("#stop-code-loop").show();
-    } else if (codeRepetitions > 1) {
-        remainingCodeRepetitions = codeRepetitions;
-        dom.get("#remaining-repetitions").show();
-        dom.get("#remaining-repetitions span").html(remainingCodeRepetitions);
-    } else {
-        // only once
-        remainingCodeRepetitions = 0;
-    }
-    isRunningCode = true;
-    dom.get("#codeStatusIcon").hide();
-    // dom.get("#run-code-button").addClass("disabled");
-    // dom.get(".run-code-updown").addClass("disabled");
-}
-
-function EndedDrawingCode() {
-    isRunningCode = false;
-    isRunningCodeForever = false;
-    // dom.get("#run-code-button").removeClass("disabled");
-    // dom.get(".run-code-updown").removeClass("disabled");
-    dom.get("#stop-code-loop").hide();
-    dom.get("#remaining-repetitions").hide();
-}
 
 function TenPrint() {
-    var xoff = melt.PenPosition().x,
-        yoff = melt.PenPosition().y;
+    var xoff = PenPosition().x,
+        yoff = PenPosition().y;
     var grid = 2;
     var alto = 330,
         ancho = 490;
@@ -1515,11 +1485,11 @@ function TenPrint() {
     }
 
     function RtL(x, y) {
-        melt.line(x + xoff, y + yoff, x + xoff + grid, y + yoff + grid);
+        line(x + xoff, y + yoff, x + xoff + grid, y + yoff + grid);
     }
 
     function LtR(x, y) {
-        melt.line(x + xoff + grid, y + yoff, x + xoff, y + yoff + grid);
+        line(x + xoff + grid, y + yoff, x + xoff, y + yoff + grid);
     }
 }
 

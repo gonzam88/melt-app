@@ -357,3 +357,13 @@ h2 .content, .ui.header .sub.header{
 .headerContainer, .status{
     user-select: none; /* Standard */
 }
+.checkbox-container{
+    background-color: #e0e1e2;
+    border-radius: 4px 0px 4px 4px;
+    margin-top: 3px;
+    margin-right: 2px;
+    padding: 4px;
+}
+#editor-container .dropdown.button{
+	text-align: center;
+}

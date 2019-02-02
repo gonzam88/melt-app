@@ -1,415 +1,451 @@
 <!DOCTYPE html>
 <html>
+
 <head profile="http://www.w3.org/2005/10/profile">
 	<link rel="icon" type="image/png" href="melt-icon.png" />
-    <meta charset="UTF-8">
-    <title>Melt</title>
+	<meta charset="UTF-8">
+	<title>Melt</title>
 
-    <link rel="stylesheet" href="../node_modules/semantic-ui-css/semantic.min.css" >
+	<link rel="stylesheet" href="../node_modules/semantic-ui-css/semantic.min.css">
 	<!--  Incosolata Font -->
-    <link href="fonts/inconsolata.css" rel="stylesheet">
+	<link href="fonts/inconsolata.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css" >
+	<link rel="stylesheet" href="style.css">
 
-    <!-- jquery -->
-    <!-- <script src="../node_modules/jquery/dist/jquery.min.js"></script> -->
+	<!-- jquery -->
+	<!-- <script src="../node_modules/jquery/dist/jquery.min.js"></script> -->
 	<script>window.$ = window.jQuery = require('../node_modules/jquery/dist/jquery.min.js');</script>
 
 
-  </head>
-  <body>
-		<div id="electron-titlebar" class="drag"></div>
+</head>
 
-<div id="app">
+<body>
+	<div id="electron-titlebar" class="drag"></div>
 
-    <div class="ui grid">
-      <div class="three column row" style="padding-bottom:0px">
-        <div class="left floated column">
+	<div id="app">
 
-          <div class="headerContainer">
+		<div class="ui grid">
+			<div class="three column row" style="padding-bottom:0px">
+				<div class="left floated column">
 
-            <h2 class="ui header">
-              <i class="fire icon"></i>
-              <div class="content">Melt
-                <div class="sub header">a Polargraph Controller</div>
-              </div>
-            </h2>
+					<div class="headerContainer">
 
-          </div><!-- headerContainer -->
-				</div>
-
-          <div class="column"></div>
-
-        	<div class="right floated column statusContainer">
-          		<div class="status">status
-					<span id="statusAlert">
-      				<i class="statuserror small exclamation circle icon"></i>
-    			</span>
-				</div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="ui stackable equal height grid columnsContainer">
-      <div id="leftColumn" class="six wide column">
-        <div id="" class="dashboardElement">
-
-            <div class="ui secondary pointing five item menu">
-				<a data-panel="control" class="active item main-menu-link"><i class="idea icon"></i></a>
-				<a data-panel="tools" class="item main-menu-link"><i class="gamepad icon"></i></a>
-				<a data-panel="console" class="item main-menu-link"><i class="terminal icon"></i></a>
-				<a data-panel="queue" class="item main-menu-link"><i class="rocket icon"></i></a>
-				<a data-panel="settings" class="ui item main-menu-link"><i class="settings icon"></i></a>
-            </div>
-
-              <div class="dashboardMenuContent">
-
-                <!-- CONTROL -->
-                <div id="content-control">
-                  <div class="ui fluid vertical labeled icon buttons">
-
-                    <button class="ui button deactivateToggle disabled" id="set-home-postion">
-                      <i class="heart icon"></i>Set Default Home
-                    </button>
-
-                    <button class="ui teal button myToggle" id="set-custom-postion">
-                      <i class="map icon"></i>Set Custom Home
-                    </button>
-
-					<button class="ui button myToggle disabled" id="control-pen-position">
-                      <i class="bug icon"></i>Control Pen Position
-                    </button>
-
-                    <button class="ui button deactivateToggle disabled" id="return-home">
-                      <i class="undo icon"></i>Return Home
-                    </button>
-
-                    <button class="ui button mypopup deactivateToggle" id="pen-lift" data-html="<div class='header'>Pen Lift</div><div class='content'><pre>C14,UP,END</pre>Moves the pen lift servo motor into the up, raised, or lifted position. The parameter behaves in the same way as C13.</div>">
-                      <i class="pencil icon"></i>Pen Lift
-                    </button>
-
-                    <button class="ui button mypopup deactivateToggle" id="pen-drop" data-html="<div class='header'>Pen Drop</div><div class='content'><pre>C13,DOWN,END</pre>oves the pen lift servo motor into the down, lowered, or drawing position, with the pen tip against the page. The machine has a set up position saved in EEPROM, but given an integer parameter, it moves the servo to that position instead, and will use that position as up until the machine is next reset - even if it is not stated explicitly on subsequent C13 calls. Use C45 to save specific lift servo positions to EEPROM.</div>">
-                      <i class="map pin icon"></i>Pen Drop
-                    </button>
-
-
-
-                  </div>
-                </div>
-
-                <!-- TOOLS -->
-                <div id="content-tools">
-
-					<div id="editor-container">
-						<div class="ui attached basic segment" id="editor-segment">
-							<div class="ui four icon buttons">
-							  <button class="ui button mypopup codeTools" data-toolname="line"  data-toolaction="insert" data-html="<div class='header'>Draw Line</div><pre>melt.line(x1, y1, x2, y2)</pre>Position in millimetres"><i class="window minimize icon"></i></button>
-							  <button class="ui button mypopup codeTools" data-toolname="ellipse"  data-toolaction="insert" data-html="<div class='header'>Draw Ellipse</div><pre>melt.ellipse(x, y, radio)</pre>Position in millimetres"><i class="circle outline icon"></i></button>
-							  <button class="ui button mypopup codeTools" data-toolname="shape"  data-toolaction="insert" data-html="<div class='header'>Draw a Shape</div>"><i class="star outline icon"></i></button>
-							  <button class="ui button mypopup codeTools" data-toolname="penposition"  data-toolaction="insert" data-html="<div class='header'>Current Pen Position</div>"><i class="compass outline icon"></i></button>
+						<h2 class="ui header">
+							<i class="fire icon"></i>
+							<div class="content">Melt
+								<div class="sub header">a Polargraph Controller</div>
 							</div>
+						</h2>
 
-							<pre id="editor"></pre>
+					</div><!-- headerContainer -->
+				</div>
+
+				<div class="column"></div>
+
+				<div class="right floated column statusContainer">
+					<div class="status">status
+						<span id="statusAlert">
+							<i class="statuserror small exclamation circle icon"></i>
+						</span>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="ui stackable equal height grid columnsContainer">
+			<div id="leftColumn" class="six wide column">
+				<div id="" class="dashboardElement">
+
+					<div class="ui secondary pointing five item menu">
+						<a data-panel="control" class="active item main-menu-link"><i class="idea icon"></i></a>
+						<a data-panel="tools" class="item main-menu-link"><i class="gamepad icon"></i></a>
+						<a data-panel="console" class="item main-menu-link"><i class="terminal icon"></i></a>
+						<a data-panel="queue" class="item main-menu-link"><i class="rocket icon"></i></a>
+						<a data-panel="settings" class="ui item main-menu-link"><i class="settings icon"></i></a>
+					</div>
+
+					<div class="dashboardMenuContent">
+
+						<!-- CONTROL -->
+						<div id="content-control">
+							<div class="ui fluid vertical labeled icon buttons">
+
+								<button class="ui button deactivateToggle disabled" id="set-home-postion">
+									<i class="heart icon"></i>Set Default Home
+								</button>
+
+								<button class="ui teal button myToggle" id="set-custom-postion">
+									<i class="map icon"></i>Set Custom Home
+								</button>
+
+								<button class="ui button myToggle disabled" id="control-pen-position">
+									<i class="bug icon"></i>Control Pen Position
+								</button>
+
+								<button class="ui button deactivateToggle disabled" id="return-home">
+									<i class="undo icon"></i>Return Home
+								</button>
+
+								<button class="ui button mypopup deactivateToggle" id="pen-lift" data-html="<div class='header'>Pen Lift</div><div class='content'><pre>C14,UP,END</pre>Moves the pen lift servo motor into the up, raised, or lifted position. The parameter behaves in the same way as C13.</div>">
+									<i class="pencil icon"></i>Pen Lift
+								</button>
+
+								<button class="ui button mypopup deactivateToggle" id="pen-drop" data-html="<div class='header'>Pen Drop</div><div class='content'><pre>C13,DOWN,END</pre>oves the pen lift servo motor into the down, lowered, or drawing position, with the pen tip against the page. The machine has a set up position saved in EEPROM, but given an integer parameter, it moves the servo to that position instead, and will use that position as up until the machine is next reset - even if it is not stated explicitly on subsequent C13 calls. Use C45 to save specific lift servo positions to EEPROM.</div>">
+									<i class="map pin icon"></i>Pen Drop
+								</button>
+
+
+
+							</div>
 						</div>
 
-						<div id="run-code-container" class="ui input">
-							<div id="run-code-button" class="ui  button">
-								<i class="magic icon"></i> <span></span>
-							</div>
+						<!-- TOOLS -->
+						<div id="content-tools">
 
-								<div class="ui right labeled input">
-									<div class="ui vertical  buttons">
-										<button class="ui button run-code-updown buttonup"><i class="up caret icon"></i></button>
-										<button class="ui button run-code-updown buttondown"><i class="down caret icon"></i></button>
+							<div id="editor-container">
+								<div class="ui attached basic segment" id="editor-segment">
+									<!-- <div class="ui four icon buttons">
+										<button class="ui button mypopup codeTools" data-toolname="line" data-toolaction="insert" data-html="<div class='header'>Draw Line</div><pre>melt.line(x1, y1, x2, y2)</pre>Position in millimetres"><i class="window minimize icon"></i></button>
+										<button class="ui button mypopup codeTools" data-toolname="ellipse" data-toolaction="insert" data-html="<div class='header'>Draw Ellipse</div><pre>melt.ellipse(x, y, radio)</pre>Position in millimetres"><i class="circle outline icon"></i></button>
+										<button class="ui button mypopup codeTools" data-toolname="shape" data-toolaction="insert" data-html="<div class='header'>Draw a Shape</div>"><i class="star outline icon"></i></button>
+										<button class="ui button mypopup codeTools" data-toolname="penposition" data-toolaction="insert" data-html="<div class='header'>Current Pen Position</div>"><i class="compass outline icon"></i></button>
+									</div> -->
+
+
+									<div class="ui three icon buttons">
+										<div class="ui dropdown button">
+											<i class="user icon"></i>
+											<div class="menu">
+												<div class="item"><i class="edit icon"></i>Edit User</div>
+												<div class="item"><i class="delete icon"></i>Remove User</div>
+												<div class="item"><i class="hide icon"></i>Make Invisible</div>
+											</div>
+										</div>
+										<div class="ui dropdown button">
+											<i class="users icon"></i>
+											<div class="menu">
+												<div class="item"><i class="edit icon"></i>Edit Group</div>
+												<div class="item"><i class="delete icon"></i>Remove Group</div>
+												<div class="item"><i class="hide icon"></i>Hide from Group</div>
+											</div>
+										</div>
+										<div class="ui dropdown button">
+											<i class="settings icon"></i>
+											<div class="menu">
+												<div class="item"><i class="edit icon"></i> Edit</div>
+												<div class="item"><i class="delete icon"></i> Remove</div>
+												<div class="item"><i class="hide icon"></i> Hide</div>
+											</div>
+										</div>
 									</div>
+
+									<pre id="editor"></pre>
 								</div>
+
+
+
+
+								<div id="run-code-container" class="ui input">
+									<div class="checkbox-container">
+										<div class="ui checkbox">
+											<input type="checkbox" v-model="polargraph.ui.isOnlySketching">
+											<label>Sketch Only</label>
+										</div>
+									</div>
+
+
+									<div id="run-code-button" class="ui  button">
+										<i class="magic icon"></i> <span></span>
+									</div>
+
+
+								</div>
+
+								<div id="run-code-check-error" class="ui pointing label">Check for errors first: <span></span></div>
+
+								<div id="stop-code-loop" class="ui negative button mypopup" data-html="Plotter will continue drawing but prevent further repetitions">
+									<i class="hand paper icon"></i>Stop the looping madness
+								</div>
+							</div> <!-- editor container -->
+
+
+							<div id="tools-buttons">
+
+
+								<div class="ui fluid vertical labeled icon buttons">
+									<!-- Free Draw -->
+									<button class="ui button myToggle" id="tools-free-draw">
+										<i class="paint brush icon"></i>Free Drawing
+									</button>
+
+
+
+									<!-- code -->
+									<button class="ui button deactivateToggle" id="reveal-code">
+										<i class="code icon"></i>Code
+									</button>
+
+
+
+
+									<!-- move -->
+									<button class="ui button myToggle" id="keyboard-control">
+										<i class="keyboard icon"></i> Keyboard Control
+									</button>
+
+								</div><!-- fluid buttons -->
+
+
+								<div id="keyboard-control-container">
+									<!-- <div class="ui segment"> -->
+
+									<h4>Steps</h4>
+									<p>Control position with keyboard arrows. Toggle pen with spacebar.</p>
+
+									<div class="ui right labeled input">
+										<input type="number" id="keyboard-input-mm">
+										<div class="ui basic label">
+											mm
+										</div>
+									</div>
+
+									<div class="ui right labeled input">
+										<input type="number" id="keyboard-input-px">
+										<div class="ui basic label">
+											px
+										</div>
+									</div>
+
+									<div class="ui right labeled input">
+										<input type="number" id="keyboard-input-steps">
+										<div class="ui basic label">
+											steps
+										</div>
+									</div>
+
+									<!-- </div> -->
+								</div>
+
+
+							</div><!-- tools buttons -->
+						</div><!-- content-tools -->
+
+
+
+						<!-- CONSOLA -->
+						<div id="content-console">
+							<div class="" id="console"></div>
+							<div id="consoleInputContainer">
+								<input id="consoleInput" type="text" placeholder=">_">
 							</div>
-
-							<div id="run-code-check-error" class="ui pointing label">Check for errors first: <span></span></div>
-							<div id="remaining-repetitions" class="ui pointing label">Remaining Repetitions: <span></span></div>
-
-							<div id="stop-code-loop" class="ui negative button mypopup" data-html="Plotter will continue drawing but prevent further repetitions">
-								<i class="hand paper icon"></i>Stop the looping madness
-							</div>
-					</div> <!-- editor container -->
-
-
-					<div id="tools-buttons">
-
-
-						<div class="ui fluid vertical labeled icon buttons">
-							<!-- Free Draw -->
-							<button class="ui button myToggle" id="tools-free-draw">
-								<i class="paint brush icon"></i>Free Drawing
-						  	</button>
-
-
-
-							<!-- code -->
-							<button class="ui button deactivateToggle" id="reveal-code">
-								<i class="code icon"></i>Code
-						  	</button>
-
-
-
-
-							<!-- move -->
-							<button class="ui button myToggle" id="keyboard-control">
-								<i class="keyboard icon"></i> Keyboard Control
-						  	</button>
-
-						</div><!-- fluid buttons -->
-
-
-						<div id="keyboard-control-container">
-							<!-- <div class="ui segment"> -->
-
-								<h4>Steps</h4>
-								<p>Control position with keyboard arrows. Toggle pen with spacebar.</p>
-
-								<div class="ui right labeled input">
-								  <input type="number" id="keyboard-input-mm">
-								  <div class="ui basic label">
-								    mm
-								  </div>
-								</div>
-
-								<div class="ui right labeled input">
-								  <input type="number" id="keyboard-input-px">
-								  <div class="ui basic label">
-								    px
-								  </div>
-								</div>
-
-								<div class="ui right labeled input">
-								  <input type="number" id="keyboard-input-steps">
-								  <div class="ui basic label">
-								    steps
-								  </div>
-								</div>
-
-							<!-- </div> -->
 						</div>
 
 
-					</div><!-- tools buttons -->
-            	</div><!-- content-tools -->
-
-
-
-                <!-- CONSOLA -->
-                <div id="content-console">
-                  <div class="" id="console"></div>
-                    <div id="consoleInputContainer">
-                      <input id="consoleInput" type="text" placeholder=">_">
-                    </div>
-                </div>
-
-
-								<!-- QUEUE -->
-                <div id="content-queue">
-                  <div id="queue">
-              		<div id="queue-last-item" class='queue item'><span class='cmd'>+<span id="queueRemaining"></span> Commands remaining</span></div>
-                  </div>
-
-					  <a id="pause-queue" class="ui labeled icon button"><i class="pause icon"></i>Pause</a>
-
-					  <a id="clear-queue" class="ui labeled icon button"><i class="trash icon"></i>Clear</a>
-
-						<div id="queue-progress" class="ui small teal progress mypopup"  data-html="">
-						  <div class="bar">
-								<!-- <div class="progress"></div> --> <!-- uncommenting this would overlay the percent numer -->
+						<!-- QUEUE -->
+						<div id="content-queue">
+							<div id="queue">
+								<div id="queue-last-item" class='queue item'><span class='cmd'>+<span id="queueRemaining"></span> Commands remaining</span></div>
 							</div>
-						</div><!-- progress bar -->
-						<div id="elapsed-time"></div>
 
+							<a id="pause-queue" class="ui labeled icon button"><i class="pause icon"></i>Pause</a>
+
+							<a id="clear-queue" class="ui labeled icon button"><i class="trash icon"></i>Clear</a>
+
+							<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
+								<div class="bar">
+									<!-- <div class="progress"></div> -->
+									<!-- uncommenting this would overlay the percent numer -->
+								</div>
+							</div><!-- progress bar -->
+							<div id="elapsed-time"></div>
+
+						</div>
+
+
+						<!-- SETTINGS -->
+						<div id="content-settings">
+
+							<h5>Machine</h5>
+
+
+
+
+							<div class="ui fluid right labeled input mypopup" data-html="<div class='header'>Set Machine Size</div><div class='content'><pre>C24,[width],[height],END</pre>Sets the machine's dimensions in millimetres.</div>">
+								<div class="ui basic label">Machine Width (mm)</div>
+								<input type="number" placeholder="1200" id="inputMachineWidth" v-model="polargraph.machine.widthMM">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Machine Height (mm)</div>
+								<input type="number" placeholder="800" id="inputMachineHeight">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">mm per Rev</div>
+								<input type="number" placeholder="32" id="inputMmPerRev">
+
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Steps per Rev</div>
+								<input type="number" placeholder="800" id="inputStepsPerRev">
+
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Step Multiplier</div>
+								<input type="number" placeholder="16" id="inputStepMultiplier">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Pen Down Position</div>
+								<input type="number" placeholder="90" id="inputDownPos">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Pen Up Position</div>
+								<input type="number" placeholder="180" id="inputUpPos">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Max Speed</div>
+								<input type="number" placeholder="200" id="inputMaxSpeed">
+							</div>
+
+							<div class="ui fluid right labeled input">
+								<div class="ui basic label">Acceleration</div>
+								<input type="number" placeholder="400" id="inputAcceleration">
+							</div>
+
+							<h5>Calculated</h5>
+
+							<div class="ui fluid right labeled input disabled">
+								<div class="ui basic label">MM per Step</div>
+								<input type="number" placeholder="0.16" id="inputMmPerStep">
+							</div>
+
+							<div class="ui fluid right labeled input disabled">
+								<div class="ui basic label">Steps Per MM</div>
+								<input type="number" placeholder="6.25" id="inputStepsPerMM">
+							</div>
+
+							<div class="ui fluid right labeled input disabled">
+								<div class="ui basic label">Page Width (steps)</div>
+								<input type="number" placeholder="200" id="inputPageWidthSteps">
+							</div>
+
+							<div class="ui fluid right labeled input disabled">
+								<div class="ui basic label">Page Height (steps)</div>
+								<input type="number" placeholder="400" id="inputPageHeightSteps">
+							</div>
+
+							<div class="ui divider"></div>
+
+							<h5>Machine Configuration</h5>
+
+							<div class="ui fluid buttons">
+								<button class="ui button" id="uploadMachineConfig"><i class="upload icon"></i> Upload</button>
+								<button class="ui disabled button"><i class="download icon"></i> Download</button>
+							</div>
+
+							<h5>Configuration File</h5>
+							<div class="ui fluid buttons">
+								<button class="ui disabled button"><i class="save icon"></i> Save</button>
+								<button class="ui disabled button"><i class="save outline icon"></i> Save As...</button>
+								<button class="ui disabled button"><i class="folder open icon"></i> Load</button>
+							</div>
+
+							<div class="ui divider"></div>
+
+							<h5>More Tools</h5>
+							<div class="ui fluid vertical labeled icon buttons">
+								<button class="ui disabled button"><i class="bomb icon"></i> Reset Machine</button>
+								<button class="ui disabled button"><i class="recycle icon"></i> Reset EEPROM</button>
+							</div>
+
+
+							<div class="ui divider"></div>
+							<h5>Serial</h5>
+							<p>Connected to <span id="connected_to"></span></p>
+							<button class="ui mini labeled icon button serial_reconnect">
+								<i class="road icon"></i>
+								New Connection
+							</button>
+
+
+						</div>
+
+					</div>
+				</div>
+
+			</div> <!-- six wide col -->
+
+
+			<div id="rightColumn" class="ten wide column">
+				<div class="dashboardElement ui segment">
+					<div id="dimmerEl" class="ui active dimmer">
+						<div id="loaderEl" class="ui text loader">
+							Waiting for Polargraph
+							</br></br>
+							<button class="ui basic inverted mini button serial_reconnect"><i class="road icon"></i>New Connection</button>
+						</div> <!-- loader -->
+					</div> <!-- dimmer -->
+
+					<div id="canvasSizer">
+						<canvas id="myCanvas"></canvas>
+					</div>
+					<div id="canvasMetaData">
+						X: <span class="x"></span>,
+						Y: <span class="y"></span><br />
+						X: <span class="xmm"></span> mm,
+						Y: <span class="ymm"></span> mm<br />
+						L Motor: <span class="lmotomm"></span> mm, <span class="lmotosteps"></span> steps<br />
+						R Motor: <span class="rmotomm"></span> mm, <span class="rmotosteps"></span> steps<br />
 					</div>
 
 
-              <!-- SETTINGS -->
-              <div id="content-settings">
-
-				<h5>Machine</h5>
+				</div> <!-- ui segment -->
+			</div> <!-- six wide col -->
 
 
 
 
-                <div class="ui fluid right labeled input mypopup"  data-html="<div class='header'>Set Machine Size</div><div class='content'><pre>C24,[width],[height],END</pre>Sets the machine's dimensions in millimetres.</div>">
-                  <div class="ui basic label">Machine Width (mm)</div>
-                  <input type="number" placeholder="1200" id="inputMachineWidth" v-model="polargraph.machine.widthMM">
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">Machine Height (mm)</div>
-                  <input type="number" placeholder="800"  id="inputMachineHeight">
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">mm per Rev</div>
-                  <input type="number" placeholder="32" id="inputMmPerRev">
-
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">Steps per Rev</div>
-                  <input type="number" placeholder="800" id="inputStepsPerRev">
-
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">Step Multiplier</div>
-                  <input type="number" placeholder="16" id="inputStepMultiplier">
-                </div>
-
-								<div class="ui fluid right labeled input">
-                  <div class="ui basic label">Pen Down Position</div>
-                  <input type="number" placeholder="90" id="inputDownPos">
-                </div>
-
-								<div class="ui fluid right labeled input">
-                  <div class="ui basic label">Pen Up Position</div>
-                  <input type="number" placeholder="180" id="inputUpPos">
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">Max Speed</div>
-                  <input type="number" placeholder="200" id="inputMaxSpeed">
-                </div>
-
-                <div class="ui fluid right labeled input">
-                  <div class="ui basic label">Acceleration</div>
-                  <input type="number" placeholder="400" id="inputAcceleration">
-                </div>
-
-								<h5>Calculated</h5>
-
-								<div class="ui fluid right labeled input disabled">
-                  <div class="ui basic label">MM per Step</div>
-                  <input type="number" placeholder="0.16" id="inputMmPerStep">
-                </div>
-
-								<div class="ui fluid right labeled input disabled">
-                  <div class="ui basic label">Steps Per MM</div>
-                  <input type="number" placeholder="6.25" id="inputStepsPerMM">
-                </div>
-
-                <div class="ui fluid right labeled input disabled">
-                  <div class="ui basic label">Page Width (steps)</div>
-                  <input type="number" placeholder="200"  id="inputPageWidthSteps">
-                </div>
-
-                <div class="ui fluid right labeled input disabled">
-                  <div class="ui basic label">Page Height (steps)</div>
-                  <input type="number" placeholder="400" id="inputPageHeightSteps">
-                </div>
-
-                <div class="ui divider"></div>
-
-                <h5>Machine Configuration</h5>
-
-                <div class="ui fluid buttons">
-                  <button class="ui button" id="uploadMachineConfig"><i class="upload icon"></i> Upload</button>
-                  <button class="ui disabled button"><i class="download icon"></i> Download</button>
-                </div>
-
-                <h5>Configuration File</h5>
-                <div class="ui fluid buttons">
-                  <button class="ui disabled button"><i class="save icon"></i> Save</button>
-                  <button class="ui disabled button"><i class="save outline icon"></i> Save As...</button>
-                  <button class="ui disabled button"><i class="folder open icon"></i> Load</button>
-                </div>
-
-                <div class="ui divider"></div>
-
-				<h5>More Tools</h5>
-				<div class="ui fluid vertical labeled icon buttons">
-					<button class="ui disabled button"><i class="bomb icon"></i> Reset Machine</button>
-                 	<button class="ui disabled button"><i class="recycle icon"></i> Reset EEPROM</button>
-                </div>
-
-
-				<div class="ui divider"></div>
-				<h5>Serial</h5>
-				<p>Connected to <span id="connected_to"></span></p>
-                <button class="ui mini labeled icon button serial_reconnect">
-                  <i class="road icon"></i>
-                  New Connection
-                </button>
-
-
-              </div>
-
-            </div>
-          </div>
-
-      </div> <!-- six wide col -->
-
-
-      <div id="rightColumn" class="ten wide column">
-        <div class="dashboardElement ui segment">
-						<div id="dimmerEl" class="ui active dimmer">
-							<div id="loaderEl" class="ui text loader">
-								Waiting for Polargraph
-								</br></br>
-								<button class="ui basic inverted mini button serial_reconnect"><i class="road icon"></i>New Connection</button>
-							</div> <!-- loader -->
-						</div> <!-- dimmer -->
-
-	            <div id="canvasSizer">
-	            	<canvas id="myCanvas"></canvas>
-	            </div>
-	            <div id="canvasMetaData">
-	                X: <span class="x"></span>,
-	                Y: <span class="y"></span><br />
-	                X: <span class="xmm"></span> mm,
-	                Y: <span class="ymm"></span> mm<br />
-	                L Motor: <span class="lmotomm"></span> mm, <span class="lmotosteps"></span> steps<br />
-	                R Motor: <span class="rmotomm"></span> mm, <span class="rmotosteps"></span> steps<br />
-	            </div>
-
-
-          </div> <!-- ui segment -->
-      </div> <!-- six wide col -->
-
-
-
-
-    </div> <!-- ui grid -->
+		</div> <!-- ui grid -->
 
 
 
 		<!-- Serial connection modal -->
 		<div class="ui basic modal">
-  <div class="ui icon header">
-    <i class="road icon"></i>
-    Serial Port
-  </div>
-  <div class="content" style="text-align:center">
-    <p>Select the road that leads to the Polargraph</p>
-  </div>
-  <div class="actions" style="text-align:center" id="serial_connections">
+			<div class="ui icon header">
+				<i class="road icon"></i>
+				Serial Port
+			</div>
+			<div class="content" style="text-align:center">
+				<p>Select the road that leads to the Polargraph</p>
+			</div>
+			<div class="actions" style="text-align:center" id="serial_connections">
 
 
-  </div>
-</div>
+			</div>
+		</div>
 
-</div> <!-- (vue) app -->
-  </body>
+	</div> <!-- (vue) app -->
+</body>
 
-	<!-- semantic ui -->
-	<script src="../node_modules/semantic-ui-css/semantic.min.js"></script>
-	<!-- vue -->
-	<script src="vue-2.5.22.js"></script>
-	<!-- load ace -->
-	<script src="../node_modules/ace-builds/src-min/ace.js"></script>
-	<!-- load ace language tools -->
-	<script src="../node_modules/ace-builds/src-min/ext-language_tools.js"></script>
-	<!-- victor.js libraries (vector math) -->
-	<script src="../node_modules/victor/index.js" type="text/javascript"></script>
-	<!-- fabric.js libraries -->
-	<script src="../node_modules/fabric/dist/fabric.js" type="text/javascript"></script>
-	<!-- melt script -->
-	<script src="melt.js" type="text/javascript"></script>
+<!-- semantic ui -->
+<script src="../node_modules/semantic-ui-css/semantic.min.js"></script>
+<!-- vue -->
+<script src="vue-2.5.22.js"></script>
+<!-- load ace -->
+<script src="../node_modules/ace-builds/src-min/ace.js"></script>
+<!-- load ace language tools -->
+<script src="../node_modules/ace-builds/src-min/ext-language_tools.js"></script>
+<!-- victor.js libraries (vector math) -->
+<script src="../node_modules/victor/index.js" type="text/javascript"></script>
+<!-- fabric.js libraries -->
+<script src="../node_modules/fabric/dist/fabric.js" type="text/javascript"></script>
+<!-- melt script -->
+<script src="melt.js" type="text/javascript"></script>
 
 </html>

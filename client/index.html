@@ -57,11 +57,10 @@
 			<div id="leftColumn" class="six wide column">
 				<div id="" class="dashboardElement">
 
-					<div class="ui secondary pointing five item menu">
+					<div class="ui secondary pointing four item menu">
 						<a data-panel="control" class="active item main-menu-link"><i class="idea icon"></i></a>
 						<a data-panel="tools" class="item main-menu-link"><i class="gamepad icon"></i></a>
 						<a data-panel="console" class="item main-menu-link"><i class="terminal icon"></i></a>
-						<a data-panel="queue" class="item main-menu-link"><i class="rocket icon"></i></a>
 						<a data-panel="settings" class="ui item main-menu-link"><i class="settings icon"></i></a>
 					</div>
 
@@ -132,8 +131,8 @@
 										<!-- Toggle Only Sketching -->
 										<div class="item checkbox-container">
 											<div class="ui checkbox">
-												<input type="checkbox" v-model="polargraph.ui.isOnlySketching">
-												<label>Sketch Only</label>
+												<input id="isOnlySketching" type="checkbox" v-model="polargraph.ui.isOnlySketching">
+												<label for="isOnlySketching" >Sketch Only</label>
 											</div>
 										</div>
 
@@ -170,14 +169,10 @@
 										<i class="paint brush icon"></i>Free Drawing
 									</button>
 
-
-
 									<!-- code -->
 									<button class="ui button deactivateToggle" id="reveal-code">
 										<i class="code icon"></i>Code
 									</button>
-
-
 
 
 									<!-- move -->
@@ -224,43 +219,44 @@
 
 
 
-						<!-- CONSOLA -->
+						<!-- CONSOLA+QUEUE -->
 						<div id="content-console">
-							<div class="" id="console"></div>
-							<div id="consoleInputContainer">
-								<input id="consoleInput" type="text" placeholder=">_">
-							</div>
-						</div>
-
-
-						<!-- QUEUE -->
-						<div id="content-queue">
-							<div id="queue">
-								<div id="queue-last-item" class='queue item'><span class='cmd'>+<span id="queueRemaining"></span> Commands remaining</span></div>
-							</div>
-
-							<a id="pause-queue" class="ui labeled icon button"><i class="pause icon"></i>Pause</a>
-
-							<a id="clear-queue" class="ui labeled icon button"><i class="trash icon"></i>Clear</a>
-
-							<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
-								<div class="bar">
-									<!-- <div class="progress"></div> -->
-									<!-- uncommenting this would overlay the percent numer -->
+							<!-- CONSOLE -->
+							<div class="console-container">
+								<h5>Console</h5>
+								<div class="" id="console"></div>
+								<div id="consoleInputContainer">
+									<input id="consoleInput" type="text" placeholder=">_">
 								</div>
-							</div><!-- progress bar -->
-							<div id="elapsed-time"></div>
+							</div>
+
+							<div class="ui divider"></div>
+
+							<!-- QUEUE -->
+							<div class="queue-container">
+								<h5>Queue</h5>
+								<div id="queue">
+									<div id="queue-last-item" class='queue item'><span class='cmd'>+<span id="queueRemaining"></span> Commands remaining</span></div>
+								</div>
+
+								<a id="pause-queue" class="ui labeled icon tiny button"><i class="pause icon"></i>Pause</a>
+								<a id="clear-queue" class="ui labeled icon tiny button"><i class="trash icon"></i>Clear</a>
+
+								<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
+									<div class="bar">
+										<!-- <div class="progress"></div> -->
+										<!-- uncommenting this would overlay the percent numer -->
+									</div>
+								</div><!-- progress bar -->
+								<div id="elapsed-time"></div>
+							</div>
 
 						</div>
-
 
 						<!-- SETTINGS -->
 						<div id="content-settings">
 
 							<h5>Machine</h5>
-
-
-
 
 							<div class="ui fluid right labeled input mypopup" data-html="<div class='header'>Set Machine Size</div><div class='content'><pre>C24,[width],[height],END</pre>Sets the machine's dimensions in millimetres.</div>">
 								<div class="ui basic label">Machine Width (mm)</div>

@@ -39,6 +39,7 @@
         "semantic-ui-css": "^2.4.1",
         "serialport": "^7.1.0",
         "usb-detection": "^4.1.0",
+        "vectorize-text": "^3.2.1",
         "victor": "^1.1.0"
     },
     "build": {

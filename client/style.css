@@ -41,7 +41,7 @@ h2 .content, .ui.header .sub.header{
   /* width: 300px;
   height: 400px; */
   font-family: 'Inconsolata', monospace;
-  height: calc(100% - 40px);
+  height: calc(100% - 70px);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -76,12 +76,12 @@ h2 .content, .ui.header .sub.header{
 }
 
 #content-queue{
-	height: 100%;
+
 }
 #queue{
 	font-family: 'Inconsolata', monospace;
 	margin-bottom: 10px;
-	height: calc(100% - 70px );
+	height: calc(100% - 125px );
 	width: 100%;
 	overflow-y: auto;
     overflow-x: hidden;
@@ -116,7 +116,13 @@ h2 .content, .ui.header .sub.header{
 
 #content-console{
   position: relative;
-  height: 100%;
+    height: 100%;
+}
+.queue-container{
+    height: 50%;
+}
+.console-container{
+    height: 50%;
 }
 
 .ui.secondary.pointing.menu .item{
@@ -368,4 +374,12 @@ h2 .content, .ui.header .sub.header{
     margin: 0;
     font-size: 10px;
     background-color: #d6d7d8;
+}
+
+#pause-queue, #clear-queue{
+    margin: 0;
+    width: 49%;
+}
+label:hover{
+    cursor: pointer;
 }

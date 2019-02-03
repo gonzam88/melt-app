@@ -1125,7 +1125,7 @@ var Polargraph = (function() {
 
                 $('#queue .item').first().remove();
                 if (machine.queue.length > queueUiLength) {
-                    dom.get("#queue-last-item").before("<div class='queue item'><span class='cmd'>" + machine.queue[queueUiLength - 1] + "</span><div class='ui divider'></div></div>");
+                    dom.get("#queue-last-item").before("<div><span>" + machine.queue[queueUiLength - 1] + "</span><div class='ui divider'></div></div>");
                 } else {
                     dom.get("#queue-last-item").hide();
                 }
@@ -1264,16 +1264,21 @@ var Polargraph = (function() {
         for (let i = 0; i < myItems.length; i++) {
             if (myItems[i].isSketch) ui.canvas.remove(myItems[i]);
         }
-
-
         showNotificationOnFinish = true;
-        console.log('Code Run @ ' + new Date());
+
         // eval(codeStr); // Actually interprets string as javascript
         if (attachedScript !== undefined) attachedScript.remove();
         attachedScript = document.createElement("script");
+        attachedScript.type = "text/javascript";
         attachedScript.text = codeStr;
         var firstScriptTag = document.getElementsByTagName("script")[1];
         firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
+
+        console.log('Code Run @ ' + new Date());
+        attachedScript.onload = function() {
+            console.log("Code Ended Running");
+            // If this works, now sort queue to improve travelling distance
+        };
 
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue

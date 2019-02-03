@@ -1,28 +1,47 @@
-const { app, BrowserWindow,  Menu, MenuItem } = require('electron')
+const { app, BrowserWindow,  Menu, MenuItem, ipcMain} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var win, contents;
+global.sharedData = {
+	os: null
+};
 
 function createWindow () {
 
-  // Create the browser window.
-  var configuration;
-  if(process.platform == "darwin"){
-      configuration = {
-          width: 800,
-          height: 600,
-          titleBarStyle: 'customButtonsOnHover',
-          title: "Melt"
-      }
-  }else{
-      configuration = {
-          width: 800,
-          height: 600,
-          frame: false,
-          title: "Melt"
-      }
-  }
+	// Create the browser window.
+	var configuration;
+	switch(process.platform){
+		case "darwin":
+		configuration = {
+			width: 800,
+			height: 600,
+			titleBarStyle: 'customButtonsOnHover',
+			title: "Melt"
+		}
+		sharedData.os = "mac";
+		break;
+
+		case "win32":
+		configuration = {
+            width: 800,
+            height: 600,
+            frame: false,
+            title: "Melt"
+        }
+		sharedData.os = "windows";
+		break;
+
+		default:
+		configuration = {
+            width: 800,
+            height: 600,
+            frame: false,
+            title: "Melt"
+        }
+		sharedData.os = "linux";
+	}
+
 
   win = new BrowserWindow(configuration);
 
@@ -109,8 +128,6 @@ function createWindow () {
   ]
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
-
-
 }// create window
 
 
@@ -123,7 +140,6 @@ function ToggleDevTools(){
 }
 
 app.on('will-quit', () => {
-
   // Unregister all shortcuts.
   // globalShortcut.unregisterAll()
 })

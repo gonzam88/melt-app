@@ -391,5 +391,10 @@ h2 .content, .ui.header .sub.header{
     width: 49%;
 }
 label:hover{
-    cursor: pointer;
+    cursor: pointer !important;
+}
+
+#content-settings label{
+	color: #D8DEE9;
+	font-size: smaller;
 }

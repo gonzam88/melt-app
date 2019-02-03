@@ -1,20 +1,24 @@
 /*
 https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-responses
 */
-const remote = require('electron').remote;
+const electron = require('electron');
+const {app} = electron;
+const remote = electron.remote;
 const win = remote.getCurrentWindow();
-const { dialog } = require('electron').remote;
-var fs = require('fs');
+const ipc = electron.ipcRenderer;
+const { dialog } = electron.remote;
+const { shell } = require('electron');
+const fs = require('fs');
 
 require('electron-titlebar');
 const SerialPort = require("serialport");
 const Readline = require('@serialport/parser-readline')
 
-const {app} = require('electron');
 const settings = require('electron-settings');
-var Mousetrap = require('mousetrap');
-var usbDetect = require('usb-detection');
+const Mousetrap = require('mousetrap');
+const usbDetect = require('usb-detection');
 
+const Store = require('electron-store');
 
 window.onerror = ErrorLog;
 function ErrorLog (msg, url, line) {
@@ -64,6 +68,8 @@ function p(txt) {
     // just a lazy shortcut
     console.log(txt);
 }
+
+
 
 
 var Polargraph = (function() {
@@ -156,7 +162,55 @@ var Polargraph = (function() {
         steps: null
     };
 
+	var preferences = new Store({
+		defaults: {
+			checkLatestVersion : true
+		}
+	});
+
     var editor, session, scriptCode;
+
+	var _checkVersion = function(){
+		// Check version
+		// TODO: catch fetch errors
+		if(!preferences.get('checkLatestVersion')) return;
+
+		let currVersion = remote.app.getVersion()
+	    console.log( "Current Melt Version: ", currVersion);
+
+	    fetch('https://api.github.com/repos/gonzam88/melt-app/releases',{cache: "no-cache"})
+	    .then(response => response.json())
+	    .then(function(json){
+			// console.log(json)
+			let myOs = remote.getGlobal('sharedData').os;
+			let latest = json[0];
+			let latestVersionNumber = parseFloat( latest.tag_name.replace(/[^\d.]/g, '') );
+			if(currVersion == latestVersionNumber){
+				console.log("Version is up to date");
+				return;
+			}
+
+			latest.assets.forEach(function(release){
+				if(release.name.includes(myOs)){
+					console.log("Found my release to download", release.browser_download_url);
+					dialog.showMessageBox({
+			            type: 'question',
+						defaultId: 0,
+			            buttons: ['Sure', "Nah, i'd rather stick to this old thing", "Disable updates"],
+			            title: 'Confirm',
+			            message: "It seems you're running an old version. Do you want to get shiny new buttons? (ps you can enable/disable auto updates on the config tab)"
+			        }, function (response) {
+			            if (response === 0) { // Runs the following if 'Yes' is clicked
+							shell.openExternal(release.browser_download_url)
+			            }else if(response == 2){
+							// This awful thing toggles the check for updates checkbox, thus triggering its vue computed value, changing the stored value
+							$('#checkUpdates').click()
+						}
+			        })
+				}
+			})
+		})
+	}
 
     var _serialInit = function() {
         let myport = settings.get('serial-path')
@@ -1280,19 +1334,11 @@ var Polargraph = (function() {
         }
         showNotificationOnFinish = true;
 
-        // if (attachedScript !== undefined) attachedScript.remove();
-        // attachedScript = document.createElement("script");
-        // attachedScript.type = "text/javascript";
-        // attachedScript.text = codeStr;
-        // var firstScriptTag = document.getElementsByTagName("script")[1];
-        // firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
-
         win.webContents.executeJavaScript(codeStr, true)
           .then((result) => {
               CodeConsole.log('Code Executed @ ' + new Date());
               // TODO: Sort queue to improve distance performance
         })
-
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue
         }
@@ -1302,7 +1348,7 @@ var Polargraph = (function() {
         dialog.showMessageBox({
             type: 'question',
             buttons: ['Yes', 'No'],
-            defaultId: 0,
+            defaultId: 1,
             title: 'Confirm',
             message: 'Unsaved sketch will be lost. Are you sure you want to open the example?'
         }, function (response) {
@@ -1330,6 +1376,7 @@ var Polargraph = (function() {
                 _uiInit();
                 _codePluginInit();
                 _UpdateBatchPercent();
+				_checkVersion();
                 initHasRun = true;
 
             }
@@ -1339,6 +1386,7 @@ var Polargraph = (function() {
         factors: factors,
         machine: machine,
         page: page,
+		preferences: preferences,
         keyboardMovementSpeed: keyboardMovementSpeed,
         AddMMCoordToQueue: _AddMMCoordToQueue,
         SerialSend: _SerialSend,
@@ -1354,7 +1402,11 @@ var vue = new Vue({
         polargraph: Polargraph, // Synced with polargraph vars and funcs
     },
     computed: {
-        keyboardMM: {
+		checkUpdates: {
+			get: function(){ return Polargraph.preferences.get('checkLatestVersion') },
+			set: function(e){ return Polargraph.preferences.set('checkLatestVersion',e)},
+		},
+		keyboardMM: {
             get: function() {
                 return Polargraph.ui.keyboardControlDeltaPx * Polargraph.factors.pxToMM;
             },

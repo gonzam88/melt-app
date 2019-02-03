@@ -20,11 +20,25 @@ window.onerror = ErrorLog;
 function ErrorLog (msg, url, line) {
     if(url != "") return;
     //console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
-    var errMsg = `<div>${msg} on line ${line}<div>`;
-    $("#preview-console-content").append(errMsg);
-    $("#preview-console-content").scrollTop($("#preview-console-content")[0].scrollHeight); // Scroleo para abajo de todo
+    var errMsg = `${msg} on line ${line}`;
+    CodeConsole.warn(errMsg)
     return true; // avoid to display an error message in the browser
 }
+
+
+var CodeConsole = {
+    log: function(msg){
+        this._append(msg,"log")
+    },
+    warn: function(msg){
+        this._append(msg,"warn")
+    },
+    _append: function(msg, msgClass){
+        $("#preview-console-content").append(`<div class="${msgClass}">${msg}<div>`);
+        $("#preview-console-content").scrollTop($("#preview-console-content")[0].scrollHeight); // Scroleo para abajo de todo
+    }
+}
+
 
 
 function Selector_Cache() {
@@ -1266,19 +1280,18 @@ var Polargraph = (function() {
         }
         showNotificationOnFinish = true;
 
-        // eval(codeStr); // Actually interprets string as javascript
-        if (attachedScript !== undefined) attachedScript.remove();
-        attachedScript = document.createElement("script");
-        attachedScript.type = "text/javascript";
-        attachedScript.text = codeStr;
-        var firstScriptTag = document.getElementsByTagName("script")[1];
-        firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
+        // if (attachedScript !== undefined) attachedScript.remove();
+        // attachedScript = document.createElement("script");
+        // attachedScript.type = "text/javascript";
+        // attachedScript.text = codeStr;
+        // var firstScriptTag = document.getElementsByTagName("script")[1];
+        // firstScriptTag.parentNode.insertBefore(attachedScript, firstScriptTag);
 
-        console.log('Code Run @ ' + new Date());
-        attachedScript.onload = function() {
-            console.log("Code Ended Running");
-            // If this works, now sort queue to improve travelling distance
-        };
+        win.webContents.executeJavaScript(codeStr, true)
+          .then((result) => {
+              CodeConsole.log('Code Executed @ ' + new Date());
+              // TODO: Sort queue to improve distance performance
+        })
 
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue

@@ -305,15 +305,25 @@ h2 .content, .ui.header .sub.header{
 }
 #preview-console-content{
     height: 140px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 #preview-console-content > div{
     padding: .5rem 1rem;
+    margin: 0;
+}
+
+#preview-console-content > .warn{
     color: rgb(209, 21, 24);
     background-color: rgb(255, 240, 240);
     border-top: 1px solid rgb(255, 214, 214);
     border-bottom: 1px solid rgb(255, 214, 214);
+}
+#preview-console-content > .log{
+    color: #276f86;
+    background-color: #f8ffff;
+    border-top: 1px solid #a9d5de;
+    border-bottom: 1px solid #a9d5de;
 }
 
 #keyboard-control-container .labeled {

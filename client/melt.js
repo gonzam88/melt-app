@@ -33,7 +33,7 @@ function ErrorLog(msg, url, line) {
     CodeConsole.warn(errMsg)
     return true; // avoid to display an error message in the browser
 }
-
+var editor;
 
 var CodeConsole = {
     log: function(msg) {
@@ -155,8 +155,10 @@ var Polargraph = (function() {
         homeSquare: null,
         homePos: null,
         movementLine: null,
-        isOnlySketching: true,
+        isOnlySketching: false,
         examplesFiles: null,
+        editorThemesArr: null,
+        editorTheme: null
     };
 
     var keyboardMovementSpeed = {
@@ -167,11 +169,13 @@ var Polargraph = (function() {
 
     var preferences = new Store({
         defaults: {
-            checkLatestVersion: true
+            checkLatestVersion: true,
+            editorTheme: "monokai"
+
         }
     });
 
-    var editor, session, scriptCode;
+    var  session, scriptCode;
 
     var _checkVersion = function(alertIfUptoDate = false) {
         // Check version
@@ -877,22 +881,73 @@ var Polargraph = (function() {
         // trigger extension
         scriptCode = localStorage["scriptCode"];
 
-        ace.require("ace/ext/language_tools");
-        editor = ace.edit("editor");
-        editor.setTheme("ace/theme/tomorrow");
-        // enable autocompletion and snippets
-        editor.setOptions({
-            enableBasicAutocompletion: true,
-            enableSnippets: true,
-            enableLiveAutocompletion: true,
-            asi: true // acepta que no haya comas
-        });
+        var ace = require('brace');
+        require('brace/mode/javascript');
+
+        require('brace/keybinding/vim');
+
+        editor = ace.edit('editor');
+        editor.getSession().setMode('ace/mode/javascript');
+
+        // Set Theme
+        let myTheme = preferences.get('editorTheme');
+        require(`brace/theme/${myTheme}`);
+        editor.setTheme(`ace/theme/${myTheme}`);
+
+        // editor.setValue([
+        //     '// JavaScript'
+        //   , 'var a = 3;'
+        //   , ''
+        //   , '// below line has an error which is annotated'
+        //   , 'var b ='
+        //   ].join('\n')
+        // );
+        editor.clearSelection();
+
+        require('brace/ext/themelist');
+        ui.editorThemesArr = ace.acequire("ace/ext/themelist").themes;
 
         session = editor.getSession();
+        editor.session.$worker.send("changeOptions", [{asi: true}]); // disables "no semicolon warning"
+
+        // var ace = require('brace');
+        // require('brace/ext/language_tools.js')
+        // ace.acequire("ace/ext/language_tools");//ace.require("ace/ext/language_tools");
+        //
+        // var editor = ace.edit('editor');
+        // editor.setOptions({
+        //   enableBasicAutocompletion: true,
+        //   enableSnippets: true,
+        //   enableLiveAutocompletion: false
+        // });
+        // editor.setTheme('ace/theme/pastel_on_dark');
+        //
+
+        //
+        //
+        // session = editor.getSession();
+        // session.setMode('ace/mode/javascript');
+
+
+        // ace.require("ace/ext/language_tools");
+        // var themelist = ace.require("ace/ext/themelist")
+        // var themes = themelist //object hash of theme objects by name
+        // console.log(themes);
+        //
+        // editor = ace.edit("editor");
+        // editor.setTheme("ace/theme/pastel_on_dark");
+        // // enable autocompletion and snippets
+        // editor.setOptions({
+        //     enableBasicAutocompletion: true,
+        //     enableSnippets: true,
+        //     enableLiveAutocompletion: true
+        // });
+
+
         if (scriptCode != undefined) {
             session.setValue(scriptCode);
         }
-        session.setMode('ace/mode/javascript');
+
         session.setUseSoftTabs(true);
         session.setTabSize(4);
 
@@ -1404,7 +1459,6 @@ var Polargraph = (function() {
             if (myItems[i].isSketch) ui.canvas.remove(myItems[i]);
         }
         showNotificationOnFinish = true;
-
         win.webContents.executeJavaScript(codeStr, true)
             .then((result) => {
                 CodeConsole.log('Code Executed @ ' + new Date());
@@ -1486,11 +1540,22 @@ var vue = new Vue({
         }
     },
     computed: {
+        editorTheme:{
+            get: function() {
+                return Polargraph.preferences.get('editorTheme')
+            },
+            set: function(e) {
+                require(`brace/theme/${e}`);
+                editor.setTheme(`ace/theme/${e}`);
+                return Polargraph.preferences.set('editorTheme', e)
+            },
+        },
         checkUpdates: {
             get: function() {
                 return Polargraph.preferences.get('checkLatestVersion')
             },
             set: function(e) {
+
                 return Polargraph.preferences.set('checkLatestVersion', e)
             },
         },

@@ -236,7 +236,9 @@
 							<div class="queue-container">
 								<h5>Queue</h5>
 								<div id="queue">
-									<div id="queue-last-item" class='queue item'><span class='cmd'>+<span id="queueRemaining"></span> Commands remaining</span></div>
+
+									<div v-for="item in polargraph.machine.queue.slice(0, 51)">{{ item }}</div>
+									<div v-if="polargraph.machine.queue.length > 51" id="queue-last-item" class='queue item'>+{{polargraph.machine.queue.length-51}} Commands remaining</div>
 								</div>
 
 								<a id="pause-queue" class="ui labeled icon tiny button"><i class="pause icon"></i>Pause</a>

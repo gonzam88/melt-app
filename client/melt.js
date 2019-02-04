@@ -147,7 +147,6 @@ var Polargraph = (function() {
         nextPenPosition: new Victor(0, 0),
         gondolaCircle: null,
         homeSquare: null,
-        queueEmptyContent: $("#queue").html(),
         homePos: null,
         movementLine: null,
         isOnlySketching: true,
@@ -545,7 +544,6 @@ var Polargraph = (function() {
             }
         })
 
-        queueEmptyContent = $("#queue").html();
         // Input console
         dom.get("#consoleInput").keyup(function(e) {
             let code = e.which; // recommended to use e.which, it's normalized across browsers
@@ -641,7 +639,6 @@ var Polargraph = (function() {
             machine.queue = [];
             lastQueueCmd = "";
             QueueBatchComplete();
-            dom.get('#queue').html(queueEmptyContent);
         });
 
         dom.get("#queue-progress").progress({
@@ -688,10 +685,6 @@ var Polargraph = (function() {
             dom.get("#editor-container").show();
             dom.get("#tools-buttons").hide();
             editor.focus()
-            // El hack mas horrible del mundo.
-            // Pero me soluciona un problema del ace editor que freakea mal
-            // win.setSize(win.getSize()[0],win.getSize()[1]-1);
-            // win.setSize(win.getSize()[0],win.getSize()[1]+1);
         }
 
         function ExitEditorMode() {
@@ -989,8 +982,6 @@ var Polargraph = (function() {
         let msg = "<div data-repeated='0' class='" + clase + "'>" + icon + txt + "</div>";
         $("#console").append(msg);
         $("#console").scrollTop($("#console")[0].scrollHeight); // Scroleo para abajo de todo
-
-        // dom.get("#console").scrollTop(dom.get("#console")[0].scrollHeight); // Scroleo para abajo de todo
         if (dom.get("#console").children().length > 100) {
             // Limit the amount of console history
             dom.get("#console").children().first().remove();
@@ -1140,17 +1131,13 @@ var Polargraph = (function() {
         return pos;
     }
     var SetNextPenPositionPixels = function(_x, _y, skipQueue = false) {
-        // console.time("SetNextPenPositionPixels");
         ui.nextPenPosition.x = _x;
         ui.nextPenPosition.y = _y;
-        // newPenPositionCircle.left = _x;
-        // newPenPositionCircle.top = _y;
         ui.canvasNeedsRender = true;
 
         let rightMotorDist = ui.nextPenPosition.distance(machine.motors.rightPosPx) * factors.pxPerStep;
         let leftMotorDist = ui.nextPenPosition.distance(machine.motors.leftPosPx) * factors.pxPerStep;
         let cmd = "C17," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",2,END";
-        // console.timeEnd("SetNextPenPositionPixels");
 
         if (skipQueue) {
             _SerialSend(cmd); // cheating the queue.. im in a hurry!!
@@ -1240,7 +1227,6 @@ var Polargraph = (function() {
     //
     // *******
     var externalQueueLength = 0;
-    var queueUiLength = 51;
     var showNotificationOnFinish = false;
 
     var CheckQueue = function() {
@@ -1265,13 +1251,6 @@ var Polargraph = (function() {
                 }
                 _SerialSend(commandString);
 
-                $('#queue .item').first().remove();
-                if (machine.queue.length > queueUiLength) {
-                    dom.get("#queue-last-item").before("<div><span>" + machine.queue[queueUiLength - 1] + "</span><div class='ui divider'></div></div>");
-                } else {
-                    dom.get("#queue-last-item").hide();
-                }
-
                 if (machine.queue.length == 0) {
                     // Queue & Batch have just finished
                     _UpdateBatchPercent();
@@ -1284,9 +1263,7 @@ var Polargraph = (function() {
                         }
                         showNotificationOnFinish = false;
                     }
-
                 }
-
             }
         }
         FormatBatchElapsed();
@@ -1299,16 +1276,8 @@ var Polargraph = (function() {
         if (cmd == lastQueueCmd) return "Command ignored for being identical to previous"; // Avoid two equal commands to be sent
         machine.queue.push(cmd);
         lastQueueCmd = cmd;
-        // console.timeEnd("AddToQueue");
         if (batchCompleted) NewQueueBatch();
         batchTotal++;
-        if (machine.queue.length < queueUiLength) {
-            // If UI queue is not populated, lets add it
-            $("#queue-last-item").before("<div class='queue item'><span class='cmd'>" + cmd + "</span><div class='ui divider'></div></div>");
-            // dom.get("#queue").append();
-        } else {
-            dom.get("#queue-last-item").show();
-        }
     }
     var lastQueueCmd = "";
     var batchTotal = 0,
@@ -1339,9 +1308,6 @@ var Polargraph = (function() {
             batchPercent = newBatchPercent;
         }
 
-        if ($(dom.get("#queue-last-item")).is(":visible")) {
-            dom.get("#queueRemaining").html(machine.queue.length - queueUiLength);
-        }
     }
     var NewQueueBatch = function() {
         batchTotal = 0;
@@ -1525,8 +1491,6 @@ window.addEventListener('load', function() {
 }, false)
 
 
-
-
 // ***********************
 //
 // Commands
@@ -1705,7 +1669,6 @@ var ellipse = function(x, y, r, res = 100) {
             Polargraph.AddMMCoordToQueue(posX, posY);
         }
         // After the circle is complete i have to go back to the first vertex position
-        // console.timeEnd("ellipse");
         Polargraph.AddMMCoordToQueue(cachedFirstVx.x, cachedFirstVx.y);
         PenUp();
     }

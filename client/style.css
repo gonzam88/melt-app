@@ -266,10 +266,6 @@ h2 .content, .ui.header .sub.header{
     margin: 0;
 }
 
-#queue-last-item{
-	display: none;
-}
-
 /* Editor error */
 .ace_gutter-cell.ace_error, .ace_gutter-cell.ace_info{
     background-image: none;

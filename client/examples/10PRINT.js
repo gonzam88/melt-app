@@ -1,3 +1,6 @@
+// Draws a 10PRINT pattern from current Pen Position
+// Read more here: https://10print.org/
+
 var xoff            = PenPosition().x,
     yoff            = PenPosition().y;
 var grid            = 8;

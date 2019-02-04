@@ -159,7 +159,7 @@ var Polargraph = (function() {
         examplesFiles: null,
         editorThemesArr: null,
         editorTheme: null,
-        snippets: null,
+        snippets: snippets, // Loaded from external .js
     };
 
     var keyboardMovementSpeed = {
@@ -542,9 +542,6 @@ var Polargraph = (function() {
         });
     }
     var _uiInit = function() {
-        // Load snippets from json file
-         ui.snippets = JSON.parse(fs.readFileSync("./client/snippets.json"));
-
 
         $('.ui.dropdown').dropdown();
         dom.get("#sketchToggle").click(function() {
@@ -766,11 +763,11 @@ var Polargraph = (function() {
 
         dom.get("#keyboard-control").on("toggleSelect", function() {
             ui.isKeyboardControlling = true;
-            dom.get("#keyboard-control-container").slideDown();
+            dom.get("#keyboard-control-container").show();
         })
         dom.get("#keyboard-control").on("toggleDeselect", function() {
             ui.isKeyboardControlling = false;
-            dom.get("#keyboard-control-container").slideUp();
+            dom.get("#keyboard-control-container").hide();
         })
 
         // ******************
@@ -1481,6 +1478,20 @@ var Polargraph = (function() {
 
     ipc.on('checkUpdates', function(event, data) {
         _checkVersion(true)
+    });
+    ipc.on('codeMode', function(event, data) {
+        dom.get("#toolsPanel").click();
+        dom.get("#reveal-code").click();
+    });
+    ipc.on('runScript', function(event, data) {
+        CheckCode();
+    });
+    ipc.on('keyboardMode', function(event, data) {
+        dom.get("#toolsPanel").click();
+        dom.get("#keyboard-control").click();
+    });
+    ipc.on('setHomeMode', function(event, data) {
+        dom.get("#set-custom-postion").click();
     });
 
 

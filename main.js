@@ -133,9 +133,44 @@ function createWindow() {
         ]
     }
 
+    const playground = {
+        label: "Playground",
+        submenu: [{
+            label: "Code Mode",
+            accelerator: "CmdOrCtrl+C",
+            click() {
+                contents.send('codeMode');
+            }
+        },{
+            label: "Run Script",
+            accelerator: "CmdOrCtrl+R",
+            click() {
+                contents.send('runScript');
+            }
+        },{
+            label: "Keyboard Control Mode",
+            accelerator: "CmdOrCtrl+K",
+            click() {
+                contents.send('keyboardMode');
+            }
+        },
+        {
+            type: "separator"
+        },{
+            label: "Set Custom Home",
+            accelerator: "CmdOrCtrl+H",
+            click() {
+                contents.send('setHomeMode');
+            }
+        }
+
+    ]
+    }
+
     const template = [
         application,
-        edit
+        edit,
+        playground
     ]
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(template))

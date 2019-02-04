@@ -16,7 +16,6 @@
 	<!-- <script src="../node_modules/jquery/dist/jquery.min.js"></script> -->
 	<script>window.$ = window.jQuery = require('../node_modules/jquery/dist/jquery.min.js');</script>
 
-
 </head>
 
 <body>
@@ -59,7 +58,7 @@
 
 					<div class="ui secondary pointing four item menu">
 						<a data-panel="control" class="active item main-menu-link"><i class="idea icon"></i></a>
-						<a data-panel="tools" class="item main-menu-link"><i class="gamepad icon"></i></a>
+						<a id="toolsPanel" data-panel="tools" class="item main-menu-link"><i class="gamepad icon"></i></a>
 						<a data-panel="console" class="item main-menu-link"><i class="terminal icon"></i></a>
 						<a data-panel="settings" class="ui item main-menu-link"><i class="settings icon"></i></a>
 					</div>
@@ -112,7 +111,7 @@
 										<i class="code icon"></i>
 										<div class="menu">
 											<div v-for="snippet in polargraph.ui.snippets" class="item codeTools" v-on:click="insertCode(`${snippet.code}`)" v-bind:title="`${snippet.hint}`">
-												 <i v-bind:class="`${snippet.icon} icon`" v-bind:data-code="snippet.code" data-action="insert"></i> {{snippet.title}}
+												<i v-bind:class="`${snippet.icon} icon`" v-bind:data-code="snippet.code" data-action="insert"></i> {{snippet.title}}
 											</div>
 										</div>
 									</div>
@@ -148,12 +147,6 @@
 									</div>
 
 								</div>
-
-
-								<!-- </div> -->
-
-
-
 							</div> <!-- editor container -->
 
 
@@ -433,8 +426,6 @@
 				<p>Select the road that leads to the Polargraph</p>
 			</div>
 			<div class="actions" style="text-align:center" id="serial_connections">
-
-
 			</div>
 		</div>
 
@@ -449,8 +440,11 @@
 <script src="../node_modules/victor/index.js" type="text/javascript"></script>
 <!-- fabric.js libraries -->
 <script src="../node_modules/fabric/dist/fabric.js" type="text/javascript"></script>
+
 <!-- parse pollar graph controller config file -->
 <script src="ParsePolargraphControllerConfig.js" type="text/javascript"></script>
+<!-- melt script -->
+<script src="snippets.js" type="text/javascript"></script>
 <!-- melt script -->
 <script src="melt.js" type="text/javascript"></script>
 

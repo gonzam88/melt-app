@@ -2,11 +2,10 @@
 https://github.com/euphy/polargraph/wiki/Polargraph-machine-commands-and-responses
 */
 const electron = require('electron');
-const {app} = electron;
 const remote = electron.remote;
 const win = remote.getCurrentWindow();
 const ipc = electron.ipcRenderer;
-const { dialog } = electron.remote;
+const { dialog, app } = electron.remote;
 const { shell } = require('electron');
 const fs = require('fs');
 
@@ -69,8 +68,6 @@ function p(txt) {
     console.log(txt);
 }
 
-ipc.on('checkUpdates' , function(event , data){ Polargraph.CheckForUpdates() });
-
 
 var Polargraph = (function() {
     var serial = {
@@ -124,6 +121,7 @@ var Polargraph = (function() {
     };
 
     var ui = {
+		machineConfigFile: {},
         toggledElement: null,
         canvas: null,
         canvasNeedsRender: false,
@@ -173,7 +171,7 @@ var Polargraph = (function() {
 	var _checkVersion = function(alertIfUptoDate=false){
 		// Check version
 		// TODO: catch fetch errors
-		if(!preferences.get('checkLatestVersion')) return;
+		if(!preferences.get('checkLatestVersion') && !alertIfUptoDate) return;
 
 		let currVersion = remote.app.getVersion()
 	    console.log( "Current Melt Version: ", currVersion);
@@ -217,6 +215,56 @@ var Polargraph = (function() {
 				}
 			})
 		})
+	}
+
+	var _SaveConfigToFile = function(saveAs = true){
+		let content = JSON.stringify(vue.polargraph.machine, false, 4);
+		if(saveAs){
+			const options = {
+			  defaultPath: app.getPath('documents') + '/MachineConfig.melt',
+			  filters: [{ name: 'Melt Configuration', extensions: ['melt'] }]
+			}
+			dialog.showSaveDialog(null, options, (path) => {
+				try {
+					fs.writeFileSync(path, content, 'utf-8');
+
+				}
+				catch(e) { console.warn('Failed to save the file !'); }
+				ui.machineConfigFile = {filepath : path};
+			});
+
+		}else{
+			try {
+				path = ui.machineConfigFile.filepath || app.getPath('documents') + '/MachineConfig.melt';
+				fs.writeFileSync(path, content, 'utf-8');
+			}
+			catch(e) { console.warn('Failed to save the file !'); }
+			ui.machineConfigFile = {filepath : path};
+		}
+
+	}
+
+	var _LoadConfigFile  = function(){
+		const options = {
+		  defaultPath: app.getPath('documents'),
+		  filters: [{ name: 'Melt Configuration', extensions: ['melt'] }],
+		  properties: ['openFile','showHiddenFiles']
+		}
+
+		dialog.showOpenDialog(null, options, (paths) => {
+		  	if (paths !== undefined) {
+	            let file = paths[0];
+				fs.readFile(file, 'utf-8', (err, data) => {
+			        if(err){
+			            console.warn("An error ocurred reading the file", err.message);
+			            return;
+			        }
+					let newMachineConf = JSON.parse(data);
+					vue.loadMachineVars(newMachineConf);
+					ui.machineConfigFile = {filepath : file};
+			    });
+        	}
+	    });
 	}
 
     var _serialInit = function() {
@@ -465,10 +513,19 @@ var Polargraph = (function() {
             dom.get("#preview-console-content").html("");
         })
 
+		dom.get("#saveMachineConfig").click( ()=>{
+			if(ui.machineConfigFile.filepath == undefined){
+				_SaveConfigToFile() // otherwise, select file path
+			}else{
+				_SaveConfigToFile(false); // if i have an opened or saved file, save there
+			}
+
+		});
+		dom.get("#saveAsMachineConfig").click( ()=>{_SaveConfigToFile()});
+		dom.get("#loadMachineConfig").click( ()=>{_LoadConfigFile()});
+
         // Leo los archivos dentro de la carpeta de ejemplos
         const examplesFolder = './client/examples/';
-        const fs = require('fs');
-
         fs.readdir(examplesFolder, (err, files) => {
             if(files.length > 0){
                 Polargraph.ui.examplesFiles = []
@@ -1373,6 +1430,9 @@ var Polargraph = (function() {
 
     var initHasRun = false;
 
+	ipc.on('checkUpdates' , function(event , data){ _checkVersion(true) });
+
+
     // Public Stuff
     return {
         init: function() {
@@ -1388,7 +1448,6 @@ var Polargraph = (function() {
 
             }
         },
-		CheckForUpdates: ()=>{_checkVersion(true)},
         editor:editor,
         ui: ui,
         factors: factors,
@@ -1399,7 +1458,7 @@ var Polargraph = (function() {
         AddMMCoordToQueue: _AddMMCoordToQueue,
         SerialSend: _SerialSend,
         AddToQueue: _AddToQueue,
-        openExample: _openExample,
+        openExample: _openExample
     };
 
 })();
@@ -1409,6 +1468,11 @@ var vue = new Vue({
     data: {
         polargraph: Polargraph, // Synced with polargraph vars and funcs
     },
+	methods:{
+		loadMachineVars: function(vars){
+			this.polargraph.machine = vars;
+		}
+	},
     computed: {
 		checkUpdates: {
 			get: function(){ return Polargraph.preferences.get('checkLatestVersion') },

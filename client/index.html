@@ -336,11 +336,11 @@
 								<button class="ui disabled button"><i class="download icon"></i> Download</button>
 							</div>
 
-							<h5>Configuration File</h5>
+							<h5>Configuration File <label>{{ Polargraph.ui.machineConfigFile.filepath }}</label></h5>
 							<div class="ui fluid buttons">
-								<button class="ui disabled button"><i class="save icon"></i> Save</button>
-								<button class="ui disabled button"><i class="save outline icon"></i> Save As...</button>
-								<button class="ui disabled button"><i class="folder open icon"></i> Load</button>
+								<button class="ui button" id="saveMachineConfig"><i class="save icon"></i> Save</button>
+								<button class="ui button" id="saveAsMachineConfig"><i class="save outline icon"></i> Save As...</button>
+								<button class="ui button" id="loadMachineConfig"><i class="folder open icon"></i> Load</button>
 							</div>
 
 							<div class="ui divider"></div>

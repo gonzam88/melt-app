@@ -1619,8 +1619,9 @@ var TogglePen = function() {
 
 var PenPosition = function() {
     // returns pen position in mm (converted from ui.penPositionPixels)
-    p = new Victor(Polargraph.ui.penPositionPixels.x * Polargraph.factors.pxToMM,
-        Polargraph.ui.penPositionPixels.y * Polargraph.factors.pxToMM);
+    p = new Victor( Polargraph.ui.penPositionPixels.x * Polargraph.factors.pxToMM,
+                    Polargraph.ui.penPositionPixels.y * Polargraph.factors.pxToMM
+            );
     return p;
 }
 

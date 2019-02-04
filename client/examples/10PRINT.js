@@ -1,14 +1,15 @@
-var xoff    = PenPosition().x,
-    yoff    = PenPosition().y;
-var grid    = 2;
-var height  = 330,
-    width   = 490;
+var xoff            = PenPosition().x,
+    yoff            = PenPosition().y;
+var grid            = 8;
+var drawnigHeight   = 200,
+    drawingWidth    = 200;
 
-for (let i = 0; i < width / grid; i++) {
-    for (let j = 0; j < height / grid; j++) {
+for (let i = 0; i < drawnigHeight / grid; i++) {
+    for (let j = 0; j < drawingWidth / grid; j++) {
         PickOne() ? LtR(i * grid, j * grid) : RtL(i * grid, j * grid);
     }
 }
+
 
 function PickOne() {
     return Math.floor(Math.random() * 2) ? true : false;

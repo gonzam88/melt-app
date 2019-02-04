@@ -111,12 +111,9 @@
 									<div class="ui dropdown button">
 										<i class="code icon"></i>
 										<div class="menu">
-											<div class="item codeTools" data-toolname="line" data-toolaction="insert"> <i class="window minimize icon"></i>Draw Line</div>
-											<div class="item codeTools" data-toolname="ellipse" data-toolaction="insert"> <i class="circle outline icon"></i>Draw Ellipse</div>
-											<div class="item codeTools" data-toolname="shape" data-toolaction="insert"> <i class="star outline icon"></i>Draw Shape</div>
-											<div class="item codeTools" data-toolname="penposition" data-toolaction="insert"> <i class="compass outline icon"></i>Current Pen Position</div>
-											<div class="item codeTools" data-toolname="width" data-toolaction="insert"> <i class="compass outline icon"></i>Machine Width</div>
-											<div class="item codeTools" data-toolname="height" data-toolaction="insert"> <i class="compass outline icon"></i>Machine Height</div>
+											<div v-for="snippet in polargraph.ui.snippets" class="item codeTools" v-on:click="insertCode(`${snippet.code}`)" v-bind:title="`${snippet.hint}`">
+												 <i v-bind:class="`${snippet.icon} icon`" v-bind:data-code="snippet.code" data-action="insert"></i> {{snippet.title}}
+											</div>
 										</div>
 									</div>
 

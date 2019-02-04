@@ -158,7 +158,8 @@ var Polargraph = (function() {
         isOnlySketching: false,
         examplesFiles: null,
         editorThemesArr: null,
-        editorTheme: null
+        editorTheme: null,
+        snippets: null,
     };
 
     var keyboardMovementSpeed = {
@@ -175,7 +176,7 @@ var Polargraph = (function() {
         }
     });
 
-    var  session, scriptCode;
+    var session, scriptCode;
 
     var _checkVersion = function(alertIfUptoDate = false) {
         // Check version
@@ -541,6 +542,10 @@ var Polargraph = (function() {
         });
     }
     var _uiInit = function() {
+        // Load snippets from json file
+         ui.snippets = JSON.parse(fs.readFileSync("./client/snippets.json"));
+
+
         $('.ui.dropdown').dropdown();
         dom.get("#sketchToggle").click(function() {
             ui.isOnlySketching != ui.isOnlySketching
@@ -682,25 +687,6 @@ var Polargraph = (function() {
 
         dom.get("#run-code-button").click(function() {
             CheckCode();
-        })
-
-        var snippets = {
-            line: "line(x1, y1, x2, y2);\n",
-            ellipse: "ellipse(x, y, radio);\n",
-            shape: "beginShape();\nvertex(x1,y1)\nvertex(x2,y2)\n\endShape();\n",
-            penposition: "(PenPosition().x, PenPosition().y);\n",
-            width: "width\n",
-            height: "height\n",
-        }
-        dom.get(".codeTools").click(function() {
-            let tool = $(this).data("toolname");
-            let action = $(this).data("toolaction");
-            switch (action) {
-                case "insert":
-                    editor.session.insert(editor.getCursorPosition(), snippets[tool]);
-                    break;
-            }
-            editor.focus()
         })
 
         dom.get("#reveal-code").click(function() {
@@ -908,7 +894,9 @@ var Polargraph = (function() {
         ui.editorThemesArr = ace.acequire("ace/ext/themelist").themes;
 
         session = editor.getSession();
-        editor.session.$worker.send("changeOptions", [{asi: true}]); // disables "no semicolon warning"
+        editor.session.$worker.send("changeOptions", [{
+            asi: true
+        }]); // disables "no semicolon warning"
 
         // var ace = require('brace');
         // require('brace/ext/language_tools.js')
@@ -1532,6 +1520,10 @@ var vue = new Vue({
         polargraph: Polargraph, // Synced with polargraph vars and funcs
     },
     methods: {
+        insertCode: function(code){
+            editor.session.insert(editor.getCursorPosition(), code);
+            editor.focus()
+        },
         loadMachineVars: function(vars) {
             this.polargraph.machine = vars;
         },
@@ -1540,7 +1532,7 @@ var vue = new Vue({
         }
     },
     computed: {
-        editorTheme:{
+        editorTheme: {
             get: function() {
                 return Polargraph.preferences.get('editorTheme')
             },
@@ -1817,6 +1809,10 @@ var endShape = function() {
         isDrawingPath = false;
         PenUp();
     }
+}
+
+function log(str){
+    CodeConsole.log(str);
 }
 
 function isEven(n) {

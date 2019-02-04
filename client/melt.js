@@ -247,7 +247,7 @@ var Polargraph = (function() {
 	var _LoadConfigFile  = function(){
 		const options = {
 		  defaultPath: app.getPath('documents'),
-		  filters: [{ name: 'Melt Configuration', extensions: ['melt'] }],
+		  filters: [{ name: 'Melt Configuration', extensions: ['melt','txt'] }],
 		  properties: ['openFile','showHiddenFiles']
 		}
 
@@ -259,9 +259,19 @@ var Polargraph = (function() {
 			            console.warn("An error ocurred reading the file", err.message);
 			            return;
 			        }
-					let newMachineConf = JSON.parse(data);
-					vue.loadMachineVars(newMachineConf);
-					ui.machineConfigFile = {filepath : file};
+					if(file.endsWith('properties.txt')){
+						// euphy polargraphc controller file. needs special parsing done in ParsePolargraphControllerConfig.js
+						var newConf = PolargraphParser.parse(data)
+						vue.loadMachineVars(newConf.machine);
+						vuw.loadPageVars(newConf.page);
+						ui.machineConfigFile = {filepath : file};
+
+					}else{
+						let newMachineConf = JSON.parse(data);
+						vue.loadMachineVars(newMachineConf);
+						ui.machineConfigFile = {filepath : file};
+					}
+
 			    });
         	}
 	    });
@@ -1471,6 +1481,9 @@ var vue = new Vue({
 	methods:{
 		loadMachineVars: function(vars){
 			this.polargraph.machine = vars;
+		},
+		loadPageVars: function(vars){
+			this.polargraph.page = vars;
 		}
 	},
     computed: {

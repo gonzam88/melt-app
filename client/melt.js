@@ -5,8 +5,13 @@ const electron = require('electron');
 const remote = electron.remote;
 const win = remote.getCurrentWindow();
 const ipc = electron.ipcRenderer;
-const { dialog, app } = electron.remote;
-const { shell } = require('electron');
+const {
+    dialog,
+    app
+} = electron.remote;
+const {
+    shell
+} = require('electron');
 const fs = require('fs');
 
 require('electron-titlebar');
@@ -20,8 +25,9 @@ const usbDetect = require('usb-detection');
 const Store = require('electron-store');
 
 window.onerror = ErrorLog;
-function ErrorLog (msg, url, line) {
-    if(url != "") return;
+
+function ErrorLog(msg, url, line) {
+    if (url != "") return;
     //console.log("error: " + msg + "\n" + "file: " + url + "\n" + "line: " + line);
     var errMsg = `${msg} on line ${line}`;
     CodeConsole.warn(errMsg)
@@ -30,13 +36,13 @@ function ErrorLog (msg, url, line) {
 
 
 var CodeConsole = {
-    log: function(msg){
-        this._append(msg,"log")
+    log: function(msg) {
+        this._append(msg, "log")
     },
-    warn: function(msg){
-        this._append(msg,"warn")
+    warn: function(msg) {
+        this._append(msg, "warn")
     },
-    _append: function(msg, msgClass){
+    _append: function(msg, msgClass) {
         $("#preview-console-content").append(`<div class="${msgClass}">${msg}<div>`);
         $("#preview-console-content").scrollTop($("#preview-console-content")[0].scrollHeight); // Scroleo para abajo de todo
     }
@@ -121,7 +127,7 @@ var Polargraph = (function() {
     };
 
     var ui = {
-		machineConfigFile: {},
+        machineConfigFile: {},
         toggledElement: null,
         canvas: null,
         canvasNeedsRender: false,
@@ -159,122 +165,140 @@ var Polargraph = (function() {
         steps: null
     };
 
-	var preferences = new Store({
-		defaults: {
-			checkLatestVersion : true
-		}
-	});
+    var preferences = new Store({
+        defaults: {
+            checkLatestVersion: true
+        }
+    });
 
     var editor, session, scriptCode;
 
-	var _checkVersion = function(alertIfUptoDate=false){
-		// Check version
-		// TODO: catch fetch errors
-		if(!preferences.get('checkLatestVersion') && !alertIfUptoDate) return;
+    var _checkVersion = function(alertIfUptoDate = false) {
+        // Check version
+        // TODO: catch fetch errors
+        if (!preferences.get('checkLatestVersion') && !alertIfUptoDate) return;
 
-		let currVersion = remote.app.getVersion()
-	    console.log( "Current Melt Version: ", currVersion);
+        let currVersion = remote.app.getVersion()
+        console.log("Current Melt Version: ", currVersion);
 
-	    fetch('https://api.github.com/repos/gonzam88/melt-app/releases',{cache: "no-cache"})
-	    .then(response => response.json())
-	    .then(function(json){
-			// console.log(json)
-			let myOs = remote.getGlobal('sharedData').os;
-			let latest = json[0];
-			let latestVersionNumber = parseFloat( latest.tag_name.replace(/[^\d.]/g, '') );
-			if(currVersion == latestVersionNumber){
-				if(alertIfUptoDate){
-					dialog.showMessageBox({
-			            type: 'info',
-			            buttons: ['Great, thanks!'],
-			            title: 'Up To Date',
-			            message: "Your version is up to date"
-			        })
-				}
-				return;
-			}
+        fetch('https://api.github.com/repos/gonzam88/melt-app/releases', {
+                cache: "no-cache"
+            })
+            .then(response => response.json())
+            .then(function(json) {
+                // console.log(json)
+                let myOs = remote.getGlobal('sharedData').os;
+                let latest = json[0];
+                let latestVersionNumber = parseFloat(latest.tag_name.replace(/[^\d.]/g, ''));
+                if (currVersion == latestVersionNumber) {
+                    if (alertIfUptoDate) {
+                        dialog.showMessageBox({
+                            type: 'info',
+                            buttons: ['Great, thanks!'],
+                            title: 'Up To Date',
+                            message: "Your version is up to date"
+                        })
+                    }
+                    return;
+                }
 
-			latest.assets.forEach(function(release){
-				if(release.name.includes(myOs)){
-					console.log("Found my release to download", release.browser_download_url);
-					dialog.showMessageBox({
-			            type: 'question',
-						defaultId: 0,
-			            buttons: ['Sure', "Nah, i'd rather stick to this old thing", "Disable updates"],
-			            title: 'Confirm',
-			            message: "It seems you're running an old version. Do you want to get shiny new buttons? (ps you can enable/disable auto updates on the config tab)"
-			        }, function (response) {
-			            if (response === 0) { // Runs the following if 'Yes' is clicked
-							shell.openExternal(release.browser_download_url)
-			            }else if(response == 2){
-							// This awful thing toggles the check for updates checkbox, thus triggering its vue computed value, changing the stored value
-							$('#checkUpdates').click()
-						}
-			        })
-				}
-			})
-		})
-	}
+                latest.assets.forEach(function(release) {
+                    if (release.name.includes(myOs)) {
+                        console.log("Found my release to download", release.browser_download_url);
+                        dialog.showMessageBox({
+                            type: 'question',
+                            defaultId: 0,
+                            buttons: ['Sure', "Nah, i'd rather stick to this old thing", "Disable updates"],
+                            title: 'Confirm',
+                            message: "It seems you're running an old version. Do you want to get shiny new buttons? (ps you can enable/disable auto updates on the config tab)"
+                        }, function(response) {
+                            if (response === 0) { // Runs the following if 'Yes' is clicked
+                                shell.openExternal(release.browser_download_url)
+                            } else if (response == 2) {
+                                // This awful thing toggles the check for updates checkbox, thus triggering its vue computed value, changing the stored value
+                                $('#checkUpdates').click()
+                            }
+                        })
+                    }
+                })
+            })
+    }
 
-	var _SaveConfigToFile = function(saveAs = true){
-		let content = JSON.stringify(vue.polargraph.machine, false, 4);
-		if(saveAs){
-			const options = {
-			  defaultPath: app.getPath('documents') + '/MachineConfig.melt',
-			  filters: [{ name: 'Melt Configuration', extensions: ['melt'] }]
-			}
-			dialog.showSaveDialog(null, options, (path) => {
-				try {
-					fs.writeFileSync(path, content, 'utf-8');
+    var _SaveConfigToFile = function(saveAs = true) {
+        let content = JSON.stringify(vue.polargraph.machine, false, 4);
+        if (saveAs) {
+            const options = {
+                defaultPath: app.getPath('documents') + '/MachineConfig.melt',
+                filters: [{
+                    name: 'Melt Configuration',
+                    extensions: ['melt']
+                }]
+            }
+            dialog.showSaveDialog(null, options, (path) => {
+                try {
+                    fs.writeFileSync(path, content, 'utf-8');
 
-				}
-				catch(e) { console.warn('Failed to save the file !'); }
-				ui.machineConfigFile = {filepath : path};
-			});
+                } catch (e) {
+                    console.warn('Failed to save the file !');
+                }
+                ui.machineConfigFile = {
+                    filepath: path
+                };
+            });
 
-		}else{
-			try {
-				path = ui.machineConfigFile.filepath || app.getPath('documents') + '/MachineConfig.melt';
-				fs.writeFileSync(path, content, 'utf-8');
-			}
-			catch(e) { console.warn('Failed to save the file !'); }
-			ui.machineConfigFile = {filepath : path};
-		}
+        } else {
+            try {
+                path = ui.machineConfigFile.filepath || app.getPath('documents') + '/MachineConfig.melt';
+                fs.writeFileSync(path, content, 'utf-8');
+            } catch (e) {
+                console.warn('Failed to save the file !');
+            }
+            ui.machineConfigFile = {
+                filepath: path
+            };
+        }
 
-	}
+    }
 
-	var _LoadConfigFile  = function(){
-		const options = {
-		  defaultPath: app.getPath('documents'),
-		  filters: [{ name: 'Melt Configuration', extensions: ['melt','txt'] }],
-		  properties: ['openFile','showHiddenFiles']
-		}
+    var _LoadConfigFile = function() {
+        const options = {
+            defaultPath: app.getPath('documents'),
+            filters: [{
+                name: 'Melt Configuration',
+                extensions: ['melt', 'txt']
+            }],
+            properties: ['openFile', 'showHiddenFiles']
+        }
 
-		dialog.showOpenDialog(null, options, (paths) => {
-		  	if (paths !== undefined) {
-	            let file = paths[0];
-				fs.readFile(file, 'utf-8', (err, data) => {
-			        if(err){
-			            console.warn("An error ocurred reading the file", err.message);
-			            return;
-			        }
-					if(file.endsWith('properties.txt')){
-						// euphy polargraphc controller file. needs special parsing done in ParsePolargraphControllerConfig.js
-						var newConf = PolargraphParser.parse(data)
-						vue.loadMachineVars(newConf.machine);
-						vuw.loadPageVars(newConf.page);
-						ui.machineConfigFile = {filepath : file};
+        dialog.showOpenDialog(null, options, (paths) => {
+            if (paths !== undefined) {
+                let file = paths[0];
+                fs.readFile(file, 'utf-8', (err, data) => {
+                    if (err) {
+                        console.warn("An error ocurred reading the file", err.message);
+                        return;
+                    }
+                    if (file.endsWith('properties.txt')) {
+                        // euphy polargraphc controller file. needs special parsing done in ParsePolargraphControllerConfig.js
+                        var newConf = PolargraphParser.parse(data)
+                        vue.loadMachineVars(newConf.machine);
+                        vuw.loadPageVars(newConf.page);
+                        ui.machineConfigFile = {
+                            filepath: file
+                        };
 
-					}else{
-						let newMachineConf = JSON.parse(data);
-						vue.loadMachineVars(newMachineConf);
-						ui.machineConfigFile = {filepath : file};
-					}
+                    } else {
+                        let newMachineConf = JSON.parse(data);
+                        vue.loadMachineVars(newMachineConf);
+                        ui.machineConfigFile = {
+                            filepath: file
+                        };
+                    }
 
-			    });
-        	}
-	    });
-	}
+                });
+            }
+        });
+    }
 
     var _serialInit = function() {
         let myport = settings.get('serial-path')
@@ -518,28 +542,35 @@ var Polargraph = (function() {
             ui.isOnlySketching != ui.isOnlySketching
         });
 
-        dom.get("#console-clear").click(function(){
+        dom.get("#console-clear").click(function() {
             dom.get("#preview-console-content").html("");
         })
 
-		dom.get("#saveMachineConfig").click( ()=>{
-			if(ui.machineConfigFile.filepath == undefined){
-				_SaveConfigToFile() // otherwise, select file path
-			}else{
-				_SaveConfigToFile(false); // if i have an opened or saved file, save there
-			}
+        dom.get("#saveMachineConfig").click(() => {
+            if (ui.machineConfigFile.filepath == undefined) {
+                _SaveConfigToFile() // otherwise, select file path
+            } else {
+                _SaveConfigToFile(false); // if i have an opened or saved file, save there
+            }
 
-		});
-		dom.get("#saveAsMachineConfig").click( ()=>{_SaveConfigToFile()});
-		dom.get("#loadMachineConfig").click( ()=>{_LoadConfigFile()});
+        });
+        dom.get("#saveAsMachineConfig").click(() => {
+            _SaveConfigToFile()
+        });
+        dom.get("#loadMachineConfig").click(() => {
+            _LoadConfigFile()
+        });
 
         // Leo los archivos dentro de la carpeta de ejemplos
         const examplesFolder = './client/examples/';
         fs.readdir(examplesFolder, (err, files) => {
-            if(files.length > 0){
+            if (files.length > 0) {
                 Polargraph.ui.examplesFiles = []
                 files.forEach(file => {
-                    Polargraph.ui.examplesFiles.push({name:file, filename: examplesFolder+file})
+                    Polargraph.ui.examplesFiles.push({
+                        name: file,
+                        filename: examplesFolder + file
+                    })
                 });
             }
         })
@@ -1375,23 +1406,23 @@ var Polargraph = (function() {
         showNotificationOnFinish = true;
 
         win.webContents.executeJavaScript(codeStr, true)
-          .then((result) => {
-              CodeConsole.log('Code Executed @ ' + new Date());
-              // TODO: Sort queue to improve distance performance
-        })
+            .then((result) => {
+                CodeConsole.log('Code Executed @ ' + new Date());
+                // TODO: Sort queue to improve distance performance
+            })
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue
         }
     }
 
-    var _openExample = function(filename){
+    var _openExample = function(filename) {
         dialog.showMessageBox({
             type: 'question',
             buttons: ['Yes', 'No'],
             defaultId: 1,
             title: 'Confirm',
             message: 'Unsaved sketch will be lost. Are you sure you want to open the example?'
-        }, function (response) {
+        }, function(response) {
             if (response === 0) { // Runs the following if 'Yes' is clicked
                 // console.log("dijo si")
                 // filename
@@ -1406,7 +1437,9 @@ var Polargraph = (function() {
 
     var initHasRun = false;
 
-	ipc.on('checkUpdates' , function(event , data){ _checkVersion(true) });
+    ipc.on('checkUpdates', function(event, data) {
+        _checkVersion(true)
+    });
 
 
     // Public Stuff
@@ -1419,17 +1452,17 @@ var Polargraph = (function() {
                 _uiInit();
                 _codePluginInit();
                 _UpdateBatchPercent();
-				_checkVersion();
+                _checkVersion();
                 initHasRun = true;
 
             }
         },
-        editor:editor,
+        editor: editor,
         ui: ui,
         factors: factors,
         machine: machine,
         page: page,
-		preferences: preferences,
+        preferences: preferences,
         keyboardMovementSpeed: keyboardMovementSpeed,
         AddMMCoordToQueue: _AddMMCoordToQueue,
         SerialSend: _SerialSend,
@@ -1444,20 +1477,24 @@ var vue = new Vue({
     data: {
         polargraph: Polargraph, // Synced with polargraph vars and funcs
     },
-	methods:{
-		loadMachineVars: function(vars){
-			this.polargraph.machine = vars;
-		},
-		loadPageVars: function(vars){
-			this.polargraph.page = vars;
-		}
-	},
+    methods: {
+        loadMachineVars: function(vars) {
+            this.polargraph.machine = vars;
+        },
+        loadPageVars: function(vars) {
+            this.polargraph.page = vars;
+        }
+    },
     computed: {
-		checkUpdates: {
-			get: function(){ return Polargraph.preferences.get('checkLatestVersion') },
-			set: function(e){ return Polargraph.preferences.set('checkLatestVersion',e)},
-		},
-		keyboardMM: {
+        checkUpdates: {
+            get: function() {
+                return Polargraph.preferences.get('checkLatestVersion')
+            },
+            set: function(e) {
+                return Polargraph.preferences.set('checkLatestVersion', e)
+            },
+        },
+        keyboardMM: {
             get: function() {
                 return Polargraph.ui.keyboardControlDeltaPx * Polargraph.factors.pxToMM;
             },
@@ -1583,9 +1620,9 @@ var TogglePen = function() {
 
 var PenPosition = function() {
     // returns pen position in mm (converted from ui.penPositionPixels)
-    p = new Victor( Polargraph.ui.penPositionPixels.x * Polargraph.factors.pxToMM,
-                    Polargraph.ui.penPositionPixels.y * Polargraph.factors.pxToMM
-            );
+    p = new Victor(Polargraph.ui.penPositionPixels.x * Polargraph.factors.pxToMM,
+        Polargraph.ui.penPositionPixels.y * Polargraph.factors.pxToMM
+    );
     return p;
 }
 

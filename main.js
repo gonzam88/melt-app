@@ -68,19 +68,23 @@ function createWindow () {
   // Other code removed for brevity
 
   const application = {
-      label: 'Application',
-      submenu: [{
-          label:'Toggle Inspector',
-          accelerator: 'CmdOrCtrl+I',
-          click() {
-              ToggleDevTools();
-          }
-      },{
-      label:'Quit',accelerator: "CmdOrCtrl+Q",
-          click() {
-              app.quit()
-          }
-        }
+		label: 'Application',
+		submenu: [{
+		  label:'Toggle Inspector',
+		  accelerator: 'CmdOrCtrl+I',
+		  click() {
+		      ToggleDevTools();
+		  }
+		},{
+		label:'Quit',
+		accelerator: "CmdOrCtrl+Q",
+		  click() {
+		      app.quit()
+		  }
+	  },{
+		  label: 'Check for updates...',
+		  click(){ contents.send( 'checkUpdates' ); }
+	  }
     ]}
 
     const edit = {

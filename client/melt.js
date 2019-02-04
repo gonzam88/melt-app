@@ -69,7 +69,7 @@ function p(txt) {
     console.log(txt);
 }
 
-
+ipc.on('checkUpdates' , function(event , data){ Polargraph.CheckForUpdates() });
 
 
 var Polargraph = (function() {
@@ -170,7 +170,7 @@ var Polargraph = (function() {
 
     var editor, session, scriptCode;
 
-	var _checkVersion = function(){
+	var _checkVersion = function(alertIfUptoDate=false){
 		// Check version
 		// TODO: catch fetch errors
 		if(!preferences.get('checkLatestVersion')) return;
@@ -186,7 +186,14 @@ var Polargraph = (function() {
 			let latest = json[0];
 			let latestVersionNumber = parseFloat( latest.tag_name.replace(/[^\d.]/g, '') );
 			if(currVersion == latestVersionNumber){
-				console.log("Version is up to date");
+				if(alertIfUptoDate){
+					dialog.showMessageBox({
+			            type: 'info',
+			            buttons: ['Great, thanks!'],
+			            title: 'Up To Date',
+			            message: "Your version is up to date"
+			        })
+				}
 				return;
 			}
 
@@ -1381,6 +1388,7 @@ var Polargraph = (function() {
 
             }
         },
+		CheckForUpdates: ()=>{_checkVersion(true)},
         editor:editor,
         ui: ui,
         factors: factors,

@@ -23,6 +23,7 @@ const Mousetrap = require('mousetrap');
 const usbDetect = require('usb-detection');
 var Bezier = require('bezier-js');
 const Store = require('electron-store');
+const path = require('path');
 
 window.onerror = ErrorLog;
 
@@ -568,14 +569,14 @@ var Polargraph = (function() {
         });
 
         // Leo los archivos dentro de la carpeta de ejemplos
-        const examplesFolder =  remote.app.getAppPath() + '/client/examples/';
-        fs.readdir(examplesFolder, (err, files) => {
+        const examplesFolder =  path.join(path.dirname(__dirname), 'extraResources','examples');
+        fs.readdir(examplesFolder, function (err, files)  {
             if (files.length > 0) {
                 Polargraph.ui.examplesFiles = []
                 files.forEach(file => {
                     Polargraph.ui.examplesFiles.push({
                         name: file,
-                        filename: examplesFolder + file
+                        filename: examplesFolder + "/" + file
                     })
                 });
             }

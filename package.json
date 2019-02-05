@@ -47,6 +47,13 @@
         "victor": "^1.1.0"
     },
     "build": {
+        "extraResources": [{
+            "from": "./src/extraResources/",
+            "to": "extraResources",
+            "filter": [
+                "**/*"
+            ]
+        }],
         "appId": "com.electron.melt",
         "mac": {
             "category": "your.app.category.type"

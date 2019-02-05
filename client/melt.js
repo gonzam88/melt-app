@@ -184,18 +184,16 @@ var Polargraph = (function() {
         // TODO: catch fetch errors
         if (!preferences.get('checkLatestVersion') && !alertIfUptoDate) return;
 
-        let currVersion = remote.app.getVersion()
-        console.log("Current Melt Version: ", currVersion);
-
+        let currVersion = remote.app.getVersion();
         fetch('https://api.github.com/repos/gonzam88/melt-app/releases', {
                 cache: "no-cache"
             })
             .then(response => response.json())
             .then(function(json) {
-                // console.log(json)
                 let myOs = remote.getGlobal('sharedData').os;
                 let latest = json[0];
-                let latestVersionNumber = parseFloat(latest.tag_name.replace(/[^\d.]/g, ''));
+                let latestVersionNumber = latest.tag_name.replace(/[^\d.]/g, '');
+                console.log("My Version:", currVersion, "|| Latest Release:", latestVersionNumber);
                 if (currVersion == latestVersionNumber) {
                     if (alertIfUptoDate) {
                         dialog.showMessageBox({

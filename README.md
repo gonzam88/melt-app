@@ -3,9 +3,9 @@ A polargraph controller
 
 Melt is my response to the awesome and complete [Polargraph Controller](https://github.com/euphy/polargraphcontroller) made by Sandy Noble. It's a way to interact with the [Polargraph Server](https://github.com/euphy/polargraph_server_a1) in a flexible way. Also draw from code as if it were p5.js/Processing
 
-![Custom JS Code](https://imgur.com/pTLWwDl "Melt Code")
-![Queue with progress bar](https://imgur.com/FRWW641 "Melt Queue")
-![Configuration tab showing command and description](https://imgur.com/GQa8lcA "Melt Configuration")
+![Custom JS Code](https://i.imgur.com/pTLWwDl.png "Melt Code")
+![Queue with progress bar](https://i.imgur.com/FRWW641.png "Melt Queue")
+![Configuration tab showing command and description](https://i.imgur.com/GQa8lcA.png "Melt Configuration")
 
 ## Melt "API"
 Run any of these to control de plotter from code. You can use the included editor to comfortably write or open the inspector with CTRL/CMD+I for wild testing. Standard JavaScript applies.

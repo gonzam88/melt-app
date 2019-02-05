@@ -9,7 +9,8 @@
         "postinstall": "electron-builder install-app-deps",
         "start": "electron .",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "yarn dist"
+        "build": "yarn dist",
+        "icons": "./node_modules/.bin/electron-icon-maker --input=/Users/gonzamoiguer/Desktop/icon.png --output=./build"
     },
     "repository": {
         "type": "git",
@@ -24,6 +25,7 @@
     "devDependencies": {
         "electron": "^3.0.10",
         "electron-builder": "^20.38.2",
+        "electron-icon-maker": "0.0.4",
         "electron-packager": "^12.2.0",
         "electron-rebuild": "^1.8.2"
     },
@@ -47,13 +49,15 @@
         "victor": "^1.1.0"
     },
     "build": {
-        "extraResources": [{
-            "from": "./src/extraResources/",
-            "to": "extraResources",
-            "filter": [
-                "**/*"
-            ]
-        }],
+        "extraResources": [
+            {
+                "from": "./src/extraResources/",
+                "to": "extraResources",
+                "filter": [
+                    "**/*"
+                ]
+            }
+        ],
         "appId": "com.electron.melt",
         "mac": {
             "category": "your.app.category.type"

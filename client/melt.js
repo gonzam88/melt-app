@@ -21,7 +21,7 @@ const Readline = require('@serialport/parser-readline')
 const settings = require('electron-settings');
 const Mousetrap = require('mousetrap');
 const usbDetect = require('usb-detection');
-
+var Bezier = require('bezier-js');
 const Store = require('electron-store');
 
 window.onerror = ErrorLog;
@@ -171,8 +171,8 @@ var Polargraph = (function() {
     var preferences = new Store({
         defaults: {
             checkLatestVersion: true,
-            editorTheme: "monokai"
-
+            editorTheme: "monokai",
+            isOnlySketching: false
         }
     });
 
@@ -568,7 +568,7 @@ var Polargraph = (function() {
         });
 
         // Leo los archivos dentro de la carpeta de ejemplos
-        const examplesFolder = './client/examples/';
+        const examplesFolder =  remote.app.getAppPath() + '/client/examples/';
         fs.readdir(examplesFolder, (err, files) => {
             if (files.length > 0) {
                 Polargraph.ui.examplesFiles = []
@@ -1543,6 +1543,15 @@ var vue = new Vue({
         }
     },
     computed: {
+        isOnlySketching:{
+            get: function() {
+                return Polargraph.preferences.get('isOnlySketching')
+            },
+            set: function(e) {
+                Polargraph.ui.isOnlySketching = e;
+                return Polargraph.preferences.set('isOnlySketching', e)
+            },
+        },
         editorTheme: {
             get: function() {
                 return Polargraph.preferences.get('editorTheme')
@@ -1558,7 +1567,6 @@ var vue = new Vue({
                 return Polargraph.preferences.get('checkLatestVersion')
             },
             set: function(e) {
-
                 return Polargraph.preferences.set('checkLatestVersion', e)
             },
         },
@@ -1753,18 +1761,32 @@ var line = function(x1, y1, x2, y2, thickness = 1) {
     }
 }
 
-var ellipse = function(x, y, r, res = 100) {
-    // TODO draw Fabric.js ellipse
+var ellipse = function(centerX, centerY, radius, resolution = 100) {
+
+    Polargraph.ui.canvas.add(
+        circle = new fabric.Circle({
+        left    : centerX * Polargraph.factors.mmToPx,
+        top     : centerY * Polargraph.factors.mmToPx,
+        radius  : radius  * Polargraph.factors.mmToPx,
+        stroke: 'rgba(255,255,255,.5)',
+        isSketch: true,
+        fill: 'transparent',
+        originX: 'center', originY: 'center',
+        isSketch: true
+        })
+    );
+
+
     if (!Polargraph.ui.isOnlySketching) {
-        res = Math.round(res);
-        if (res < 3) res = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
+        resolution = Math.round(resolution);
+        if (resolution < 3) resolution = 3; // A "circle" cant have less than 3 sides.. though that´s a triangle yo
         var cachedFirstVx;
         PenUp();
         // I generete an array of points that create the circle
-        for (let i = 0; i < res; i++) {
-            let angle = map(i, 0, res, 0, 2 * Math.PI);
-            let posX = (r * Math.cos(angle)) + x;
-            let posY = (r * Math.sin(angle)) + y;
+        for (let i = 0; i < resolution; i++) {
+            let angle = map(i, 0, resolution, 0, 2 * Math.PI);
+            let posX = (radius * Math.cos(angle)) + centerX;
+            let posY = (radius * Math.sin(angle)) + centerY;
             if (i == 0) {
                 cachedFirstVx = new Victor(posX, posY);
             } else if (i == 1) {
@@ -1807,7 +1829,7 @@ var vertex = function(posX, posY) {
 }
 var endShape = function() {
     Polargraph.ui.canvas.add(
-        new fabric.Polygon(shapeSketchVertices, {
+        new fabric.Polyline(shapeSketchVertices, {
             stroke: 'rgba(255,255,255,.5)',
             isSketch: true,
             fill: 'transparent',
@@ -1820,6 +1842,22 @@ var endShape = function() {
         isDrawingPath = false;
         PenUp();
     }
+}
+
+
+var curve = function(from, control, to){
+    // from, control and to are Victor Objects
+    let curve = new Bezier( from.x, from.y, control.x, control.y, to.x,to.y);
+    let LUT = curve.getLUT(16); // 16 steps
+
+    var points = []
+
+    beginShape()
+    LUT.forEach(function(p){
+    	vertex(p.x, p.y)
+    })
+    endShape()
+
 }
 
 function log(str){

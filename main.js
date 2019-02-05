@@ -52,7 +52,7 @@ function createWindow() {
     win = new BrowserWindow(configuration);
 
     contents = win.webContents;
-    contents.openDevTools()
+    //contents.openDevTools()
     win.maximize();
     win.show();
 
@@ -137,7 +137,7 @@ function createWindow() {
         label: "Playground",
         submenu: [{
             label: "Code Mode",
-            accelerator: "CmdOrCtrl+C",
+            // accelerator: "CmdOrCtrl+C", // TODO: suitable Shortcut
             click() {
                 contents.send('codeMode');
             }

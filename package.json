@@ -38,14 +38,15 @@
         "electron-titlebar": "0.0.3",
         "fabric": "^2.4.4",
         "fresh": ">=0.5.2",
+        "hersheytext": "^0.5.1",
         "jquery": "^3.1.1",
         "mousetrap": "^1.6.2",
         "remote": "^0.2.6",
         "semantic-ui-css": "^2.4.1",
         "send": ">=0.11.1",
         "serialport": "^7.1.0",
+        "svg-path-parser": "^1.1.0",
         "usb-detection": "^4.1.0",
-        "vectorize-text": "^3.2.1",
         "victor": "^1.1.0"
     },
     "build": {

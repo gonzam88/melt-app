@@ -320,6 +320,7 @@ h2 .content, .ui.header .sub.header{
     background-color: #f8ffff;
     border-top: 1px solid #a9d5de;
     border-bottom: 1px solid #a9d5de;
+    overflow-wrap: break-word;
 }
 
 #keyboard-control-container .labeled {

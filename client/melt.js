@@ -25,6 +25,9 @@ var Bezier = require('bezier-js');
 const Store = require('electron-store');
 const path = require('path');
 
+var hersheyText = require('hersheytext');
+var parseSVG = require('svg-path-parser');
+
 window.onerror = ErrorLog;
 
 function ErrorLog(msg, url, line) {
@@ -1858,6 +1861,65 @@ var curve = function(from, control, to){
     endShape()
 
 }
+
+var _textSize = 2;
+var textSize = function(newTextSize){ _textSize = newTextSize};
+
+var _textFont = "futura";
+var textFont = function(newTextFont){
+    if(newTextFont in hersheyText.fonts){
+        _textFont = newTextFont;
+    }else{
+        log("Font not found. Available fonts: "+ Object.keys(hersheyText.fonts))
+    }
+}
+
+var text = function(string, startX, startY){
+    let espaciado = 50;
+    let xOffset = 0;
+    let textSVGArray = hersheyText.renderTextArray(string,{
+        scale: _textSize,
+        font: _textFont
+    });
+    // console.log(textSVGArray)
+    textSVGArray.forEach(function(letraSvg){
+        if(letraSvg.type == "space"){
+            xOffset += _textSize * 5;
+        }else{
+            beginShape();
+
+            let letraPath = parseSVG(letraSvg.d)
+
+            // console.log(letraPath)
+
+            letraPath.forEach(function(l){
+
+                // switch(l.code){
+                //     case "M":
+                //         if(isDrawingPath){ endShape(); isDrawingPath=false}
+                //
+                //         vertex(l.x*100, l.y*100);
+                //     break;
+                //
+                //     case "L":
+                //         vertex(l.x*100, l.y*100);
+                //     break;
+                //
+                // }
+                let x = startX + (l.x * _textSize) + xOffset;
+                let y = startY + l.y * _textSize;
+                vertex(x, y)
+
+            })
+            xOffset += 1.8*_textSize* letraSvg.o; // letraSvg.o es el espaciado de cada letra
+            endShape();
+        }
+
+    })
+}
+
+
+
 
 function log(str){
     CodeConsole.log(str);

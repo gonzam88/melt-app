@@ -1345,6 +1345,10 @@ var Polargraph = (function() {
             ui.canvasNeedsRender = false;
         }
     }
+
+
+
+
     var _AddToQueue = function(cmd) {
         if (cmd == lastQueueCmd) return "Command ignored for being identical to previous"; // Avoid two equal commands to be sent
         machine.queue.push(cmd);
@@ -1371,12 +1375,13 @@ var Polargraph = (function() {
             newBatchPercent = batchDone / batchTotal * 100;
         }
 
-
-        if (newBatchPercent != batchPercent) {
+        if(newBatchPercent == 0){
+            dom.get("#queue-progress").progress({percent: 100});
+            win.setProgressBar(1); // mac dock progressbar
+            
+        }else if (newBatchPercent != 0 && newBatchPercent != batchPercent) {
             // By only doing this on different values I assure a proper animation on the progress bar
-            dom.get("#queue-progress").progress({
-                percent: batchPercent
-            });
+            dom.get("#queue-progress").progress({percent: batchPercent});
             win.setProgressBar(batchPercent / 100); // mac dock progressbar
             batchPercent = newBatchPercent;
         }
@@ -1387,28 +1392,63 @@ var Polargraph = (function() {
         batchDone = 0;
         batchCompleted = false;
         millisBatchStarted = new Date().getTime();
+        elapsed = 0;
+        calledQueBatcheComplete = false;
     }
-    var QueueBatchComplete = function() {
-        batchCompleted = true;
-        millisBatchEnded = new Date().getTime();
-    }
-    var FormatBatchElapsed = function() {
-        // Current batch elapsed
-        if (millisBatchStarted == null) return;
 
-        let elapsed, diff = {};
-        if (batchCompleted) {
-            elapsed = millisBatchEnded;
-        } else {
-            elapsed = new Date().getTime();
+    var lastBatchTime;
+    let calledQueBatcheComplete = false;
+    var QueueBatchComplete = function() {
+        if(!calledQueBatcheComplete){
+            calledQueBatcheComplete = true;
+            batchCompleted = true;
+            millisBatchEnded = new Date().getTime();
+            lastBatchTime = elapsed;
         }
-        elapsed = (elapsed - millisBatchStarted) / 1000;
-        diff.hours = Math.floor(elapsed / 3600 % 24);
-        diff.minutes = Math.floor(elapsed / 60 % 60);
-        diff.seconds = Math.floor(elapsed % 60);
-        let msg = diff.hours + "h " + diff.minutes + "m " + diff.seconds + "s"
+
+    }
+
+    let elapsed, diff = {};
+    let estRemaining
+    let diffRemaining = {};
+    var FormatBatchElapsed = function() {
+        // TODO: Put this in vue
+        // Current batch elapsed
+        let msg;
+        if (millisBatchStarted == null) {
+            msg = "";
+        }else if(batchCompleted){
+            diff.hours = Math.floor(lastBatchTime / 3600 % 24) || 0;
+            diff.minutes = Math.floor(lastBatchTime / 60 % 60) || 0;
+            diff.seconds = Math.floor(lastBatchTime % 60)      || 0;
+            msg = `Last queue completed in ${diff.hours}h ${diff.minutes}m ${diff.seconds}s`;
+        }else{
+
+            // if (batchCompleted) {
+            //     elapsed = millisBatchEnded;
+            // } else {
+            //     elapsed = new Date().getTime(); // Dont calculate on pause
+            // }
+            // elapsed = (elapsed - millisBatchStarted) / 1000;
+            diff.hours = Math.floor(elapsed / 3600 % 24);
+            diff.minutes = Math.floor(elapsed / 60 % 60);
+            diff.seconds = Math.floor(elapsed % 60);
+
+            estRemaining = (elapsed / batchPercent)* (100-batchPercent)
+            diffRemaining.hours = Math.floor(estRemaining / 3600 % 24);
+            diffRemaining.minutes = Math.floor(estRemaining / 60 % 60);
+            diffRemaining.seconds = Math.floor(estRemaining % 60);
+
+            msg = `${parseInt(batchPercent)}% || Elapsed: ${diff.hours}h ${diff.minutes}m ${diff.seconds}s - Remaining (est): ${diffRemaining.hours}h ${diffRemaining.minutes}m ${diffRemaining.seconds}s`;
+        }
         dom.get("#elapsed-time").html(msg);
     }
+
+    function TimeElapsed(){
+        if(machine.isQueueActive) elapsed ++;
+        setTimeout(TimeElapsed, 1000); // Ill call myself in a sec ;)
+    }
+
     var onPolargraphConnect = function() {
         statusIcon.element.html(statusIcon.success);
         EnableWorkspace();
@@ -1495,6 +1535,9 @@ var Polargraph = (function() {
     ipc.on('setHomeMode', function(event, data) {
         dom.get("#set-custom-postion").click();
     });
+    ipc.on('togglePauseQueue', function(event, data) {
+        dom.get('#pause-queue').click();
+    });
 
 
     // Public Stuff
@@ -1506,8 +1549,9 @@ var Polargraph = (function() {
                 _fabricInit();
                 _uiInit();
                 _codePluginInit();
-                _UpdateBatchPercent();
+                // _UpdateBatchPercent();
                 _checkVersion();
+                TimeElapsed()
                 initHasRun = true;
 
             }
@@ -1522,7 +1566,12 @@ var Polargraph = (function() {
         AddMMCoordToQueue: _AddMMCoordToQueue,
         SerialSend: _SerialSend,
         AddToQueue: _AddToQueue,
-        openExample: _openExample
+        openExample: _openExample,
+        batch: {
+                percent: batchPercent,
+                done: batchDone,
+                total: batchTotal
+        },
     };
 
 })();
@@ -1874,7 +1923,7 @@ var textFont = function(newTextFont){
     }
 }
 
-var text = function(string, startX, startY){
+var text = function(string, startX=0, startY=0){
     let espaciado = 50;
     let xOffset = 0;
     let textSVGArray = hersheyText.renderTextArray(string,{

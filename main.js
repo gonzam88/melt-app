@@ -130,8 +130,7 @@ function createWindow() {
                 accelerator: "CmdOrCtrl+A",
                 selector: "selectAll:"
             }
-        ]
-    }
+        ]}
 
     const playground = {
         label: "Playground",
@@ -153,24 +152,34 @@ function createWindow() {
             click() {
                 contents.send('keyboardMode');
             }
+        }
+    ]}
+
+
+    const control = {
+        label: "Control",
+        submenu: [{
+            label: "Pause/Resume Queue",
+            accelerator: "CmdOrCtrl+P",
+            // accelerator: "CmdOrCtrl+C", // TODO: suitable Shortcut
+            click() {
+                contents.send('togglePauseQueue');
+            },
         },
         {
-            type: "separator"
-        },{
             label: "Set Custom Home",
             accelerator: "CmdOrCtrl+H",
             click() {
                 contents.send('setHomeMode');
             }
         }
-
-    ]
-    }
+    ]}
 
     const template = [
         application,
         edit,
-        playground
+        playground,
+        control
     ]
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(template))

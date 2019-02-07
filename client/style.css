@@ -100,13 +100,7 @@ h2 .content, .ui.header .sub.header{
   bottom: 48px;
   left: 5px;
   font-size: 10px;
-  visibility: hidden;
-  /* width: 20px; */
   pointer-events: none;
-}
-#content-queue:hover #elapsed-time{
-  visibility: visible;
-
 }
 
 .log{
@@ -394,4 +388,7 @@ label:hover{
 #content-settings label{
 	color: #D8DEE9;
 	font-size: smaller;
+}
+#app{
+    overflow: hidden;
 }

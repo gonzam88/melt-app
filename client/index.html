@@ -19,9 +19,11 @@
 </head>
 
 <body>
-	<div id="electron-titlebar" class="drag"></div>
+
 
 	<div id="app">
+
+		<div v-if="polargraph.ui.operatingSystem != 'windows'" id="electron-titlebar" class="drag"></div>
 
 		<div class="ui grid">
 			<div class="three column row" style="padding-bottom:0px">

@@ -32,7 +32,7 @@ function createWindow() {
             configuration = {
                 width: 800,
                 height: 600,
-                frame: false,
+                frame: true,
                 title: "Melt"
             }
             sharedData.os = "windows";

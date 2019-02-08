@@ -6,3 +6,4 @@ dist
 #files
 *.tgz
 *.log
+_text api.md

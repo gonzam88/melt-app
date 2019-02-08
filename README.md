@@ -7,7 +7,7 @@ Melt is my response to the awesome and complete [Polargraph Controller](https://
 ![Queue with progress bar](https://i.imgur.com/FRWW641.png "Melt Queue")
 ![Configuration tab showing command and description](https://i.imgur.com/GQa8lcA.png "Melt Configuration")
 
-## Melt "API"
+## Melt "API"
 Run any of these to control de plotter from code. You can use the included editor to comfortably write or open the inspector with CTRL/CMD+I for wild testing. Standard JavaScript applies.
 
 ### Line
@@ -30,6 +30,7 @@ Run any of these to control de plotter from code. You can use the included edito
 `to = new Victor(width, 0);`
 
 `curve(from, controlPt, to)`
+
 
 ## About
 My main goal when making Melt was to create a way to write creative code as if it were p5.js or Processing, being able to import a sketch and make minimum changes for the plotter to make the drawing. It might also be the best way for a slow, relaxed debugging.
@@ -57,6 +58,7 @@ Prerequisites: Node, npm, yarn (if you want to build)
 - [Vue](https://vuejs.org)
 - [BezierJs](https://github.com/Pomax/bezierjs)
 - [jquery](https://jquery.com/)
+- [hershey text](https://github.com/techninja/hersheytextjs)
 
 ## Hack
 

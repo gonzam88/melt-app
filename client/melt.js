@@ -28,6 +28,8 @@ const path = require('path');
 var hersheyText = require('hersheytext');
 var parseSVG = require('svg-path-parser');
 
+var lineclip = require('lineclip');
+
 window.onerror = ErrorLog;
 
 function ErrorLog(msg, url, line) {
@@ -165,6 +167,8 @@ var Polargraph = (function() {
         editorTheme: null,
         snippets: snippets, // Loaded from external .js
         operatingSystem:  remote.getGlobal('sharedData').os,
+        clippingEnabled: true,
+        clippingRect: null,
     };
 
     var keyboardMovementSpeed = {
@@ -439,8 +443,39 @@ var Polargraph = (function() {
             stroke: 'grey',
         });
         ui.canvas.add(ui.newPenPositionArrow);
+
+        // Clipping Rect
+        ui.clippingRect = new fabric.Rect({
+            width: 100,
+            height: 100,
+            left: 50,
+            top: 50,
+            fill: 'transparent',
+            stroke: "rgb(0,255,0)",
+            strokeWidth: 1,
+            originX: 'left',
+            originY: 'top',
+
+            lockRotation: true,
+            hasRotatingPoint: false,
+            lockMovementX: false,
+            lockMovementY: false,
+            lockScalingX: false,
+            lockScalingY: false,
+            lockUniScaling: false,
+            hasControls: true,
+            selectable: true
+
+        });
+        ui.canvas.add(ui.clippingRect);
+
+
+
         // Mousewheel Zoom
         ui.canvas.on('mouse:wheel', function(opt) {
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+
             var delta = opt.e.deltaY;
             // let pointer = canvas.getPointer(opt.e);
             var zoom = ui.canvas.getZoom();
@@ -451,8 +486,6 @@ var Polargraph = (function() {
                 x: opt.e.offsetX,
                 y: opt.e.offsetY
             }, zoom);
-            opt.e.preventDefault();
-            opt.e.stopPropagation();
 
             let objs = ui.canvas.getObjects();
             for (let i = 0; i < objs.length; i++) {
@@ -463,7 +496,6 @@ var Polargraph = (function() {
         });
 
         ui.canvas.on('mouse:down', function(opt) {
-
             var evt = opt.e;
             if (evt.altKey === true || opt.which == 2) {
                 this.isDragging = true;
@@ -878,15 +910,6 @@ var Polargraph = (function() {
         let myTheme = preferences.get('editorTheme');
         require(`brace/theme/${myTheme}`);
         editor.setTheme(`ace/theme/${myTheme}`);
-
-        // editor.setValue([
-        //     '// JavaScript'
-        //   , 'var a = 3;'
-        //   , ''
-        //   , '// below line has an error which is annotated'
-        //   , 'var b ='
-        //   ].join('\n')
-        // );
         editor.clearSelection();
 
         require('brace/ext/themelist');
@@ -895,41 +918,7 @@ var Polargraph = (function() {
         session = editor.getSession();
         editor.session.$worker.send("changeOptions", [{
             asi: true
-        }]); // disables "no semicolon warning"
-
-        // var ace = require('brace');
-        // require('brace/ext/language_tools.js')
-        // ace.acequire("ace/ext/language_tools");//ace.require("ace/ext/language_tools");
-        //
-        // var editor = ace.edit('editor');
-        // editor.setOptions({
-        //   enableBasicAutocompletion: true,
-        //   enableSnippets: true,
-        //   enableLiveAutocompletion: false
-        // });
-        // editor.setTheme('ace/theme/pastel_on_dark');
-        //
-
-        //
-        //
-        // session = editor.getSession();
-        // session.setMode('ace/mode/javascript');
-
-
-        // ace.require("ace/ext/language_tools");
-        // var themelist = ace.require("ace/ext/themelist")
-        // var themes = themelist //object hash of theme objects by name
-        // console.log(themes);
-        //
-        // editor = ace.edit("editor");
-        // editor.setTheme("ace/theme/pastel_on_dark");
-        // // enable autocompletion and snippets
-        // editor.setOptions({
-        //     enableBasicAutocompletion: true,
-        //     enableSnippets: true,
-        //     enableLiveAutocompletion: true
-        // });
-
+        }]);
 
         if (scriptCode != undefined) {
             session.setValue(scriptCode);
@@ -1341,6 +1330,13 @@ var Polargraph = (function() {
         FormatBatchElapsed();
         if (ui.canvasNeedsRender) {
             ui.canvas.renderAll();
+
+            let objs = ui.canvas.getObjects();
+            for (let i = 0; i < objs.length; i++) {
+                if (!objs[i].isGrid) {
+                    objs[i].setCoords();
+                }
+            }
             ui.canvasNeedsRender = false;
         }
     }
@@ -1377,7 +1373,7 @@ var Polargraph = (function() {
         if(newBatchPercent == 0){
             dom.get("#queue-progress").progress({percent: 100});
             win.setProgressBar(1); // mac dock progressbar
-            
+
         }else if (newBatchPercent != 0 && newBatchPercent != batchPercent) {
             // By only doing this on different values I assure a proper animation on the progress bar
             dom.get("#queue-progress").progress({percent: batchPercent});
@@ -1775,6 +1771,21 @@ Object.defineProperties(this, {
 
 var line = function(x1, y1, x2, y2, thickness = 1) {
     /// <summary>Draws a line from (x1, y1) to (x2, y2). Positions should be set in millimetres. Warning! If called between StartPath() and EndPath(), pen will not be raised when moving to starting coordinate</summary>
+    if(Polargraph.ui.clippingEnabled){
+        let bbox = Polargraph.ui.clippingRect;
+        let clip = lineclip(
+            [[x1, y1], [x2, y2]], // line
+            [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left + (bbox.scaleX * bbox.width)) * Polargraph.factors.pxToMM, (bbox.top + (bbox.scaleY * bbox.height)) * Polargraph.factors.pxToMM]
+        );// clipping box
+        console.log(clip)
+        if(clip[0] == undefined) return; // Toda la linea esta por fuera
+
+        x1 = clip[0][0][0];
+        y1 = clip[0][0][1];
+        x2 = clip[0][1][0];
+        y2 = clip[0][1][1];
+    }
+
 
     Polargraph.ui.canvas.add(new fabric.Line([
         x1 * Polargraph.factors.mmToPx,

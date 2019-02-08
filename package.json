@@ -40,6 +40,7 @@
         "fresh": ">=0.5.2",
         "hersheytext": "^0.5.1",
         "jquery": "^3.1.1",
+        "lineclip": "^1.1.5",
         "mousetrap": "^1.6.2",
         "remote": "^0.2.6",
         "semantic-ui-css": "^2.4.1",

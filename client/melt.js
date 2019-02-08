@@ -164,6 +164,7 @@ var Polargraph = (function() {
         editorThemesArr: null,
         editorTheme: null,
         snippets: snippets, // Loaded from external .js
+        operatingSystem:  remote.getGlobal('sharedData').os,
     };
 
     var keyboardMovementSpeed = {
@@ -193,7 +194,6 @@ var Polargraph = (function() {
             })
             .then(response => response.json())
             .then(function(json) {
-                let myOs = remote.getGlobal('sharedData').os;
                 let latest = json[0];
                 let latestVersionNumber = latest.tag_name.replace(/[^\d.]/g, '');
                 console.log("My Version:", currVersion, "|| Latest Release:", latestVersionNumber);
@@ -210,7 +210,7 @@ var Polargraph = (function() {
                 }
 
                 latest.assets.forEach(function(release) {
-                    if (release.name.includes(myOs)) {
+                    if (release.name.includes( ui.operatingSystem )) {
                         console.log("Found my release to download", release.browser_download_url);
                         dialog.showMessageBox({
                             type: 'question',
@@ -495,7 +495,7 @@ var Polargraph = (function() {
                 this.lastPosY = e.clientY;
             }
 
-            let pointer = ui.canvas.getPointer(options.e);
+            let pointer = ui.canvas.getPointer(opt.e);
             ui.mousePos.x = pointer.x;
             ui.mousePos.y = pointer.y;
 
@@ -633,8 +633,8 @@ var Polargraph = (function() {
             });
 
         dom.get("#serial_connections").on("click", ".button", function() {
-            if (serial.port !== undefined && serial.port.isOpen) {
-                serial.port.close();
+            if (serial.port !== null){
+                  serial.port.close();
             }
 
             statusIcon.element.html(statusIcon.error);
@@ -1110,7 +1110,6 @@ var Polargraph = (function() {
     }
     var serialPathConnected = "";
     var SerialConnectTo = function(path) {
-
         // Now i actually make the connection
         serial.port = new SerialPort(path, {
             baudRate: 57600

@@ -322,12 +322,42 @@
 
 							<div class="ui divider"></div>
 
-							<h5>Clip to Area</h5>
+							<h5>Clipping Tool</h5>
 							<div class="ui checkbox">
 								<input id="clipArea" type="checkbox" v-model="clipArea">
 								<label for="clipArea">Enabled</label>
-								
-							</div>
+								</div>
+								<div style="height:5px"></div>
+								<p>Position</p>
+								<button title="Align to Left" onclick="" class="ui icon button"><i class="align left icon"></i></button>
+								<button title="Align to Right" onclick="" class="ui icon button"><i class="align right icon"></i></button>
+
+								<button title="Align to Horizontal Center" onclick="Polargraph.ui.clipping.centerHorizontal()" class="ui icon button"><i class="ellipsis horizontal icon"></i></button>
+								<button title="Align to Vertical Center" onclick="Polargraph.ui.clipping.centerVertical()" class="ui icon button"><i class="ellipsis vertical icon"></i></button>
+
+								<div style="height:5px"></div>
+								<p>Size</p>
+
+								<div class="ui form">
+									<div class="field">
+										<select class="ui search dropdown" @change="changeClippingSize($event)" v-model="clippingSize">
+											<option v-for="option in polargraph.ui.paperSizes" v-bind:value="option.name">
+												{{ option.caption }}
+											</option>
+										</select>
+									</div>
+								</div>
+
+								<div class="ui form">
+									<div class="fields">
+										<div class="field">
+											<input type="text" placeholder="Width">
+										</div> x
+										<div class="field">
+											<input type="text" placeholder="Height">
+										</div>
+									</div>
+								</div>
 
 
 							<div class="ui divider"></div>

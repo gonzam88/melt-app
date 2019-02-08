@@ -7,7 +7,7 @@ Melt is my response to the awesome and complete [Polargraph Controller](https://
 ![Queue with progress bar](https://i.imgur.com/FRWW641.png "Melt Queue")
 ![Configuration tab showing command and description](https://i.imgur.com/GQa8lcA.png "Melt Configuration")
 
-## Melt "API"
+## Melt API
 Run any of these to control de plotter from code. You can use the included editor to comfortably write or open the inspector with CTRL/CMD+I for wild testing. Standard JavaScript applies.
 
 ### Line

@@ -194,25 +194,7 @@ var Polargraph = (function() {
                 ui.canvasNeedsRender = true;
             }
         },
-        paperSizes: [{
-                name: 'a4v',
-                caption: 'A4 Vertical (210 × 297 mm)',
-                width: 210,
-                height: 297
-            },
-            {
-                name: 'a4h',
-                caption: 'A4 Horizontal (297 × 210 mm)',
-                width: 297,
-                height: 210
-            }, {
-                name: 'custom',
-                caption: 'Custom',
-                width: preferences.get("clipping.width"),
-                height: preferences.get("clipping.height")
-            }
-
-        ]
+        paperSizes: paperSizes
     };
 
     var _

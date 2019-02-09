@@ -328,7 +328,7 @@
 								<label for="clipArea">Enabled</label>
 								</div>
 								<div style="height:5px"></div>
-								<p>Position</p>
+								<label>Position</label><br />
 								<button title="Align to Left" onclick="" class="ui icon button"><i class="align left icon"></i></button>
 								<button title="Align to Right" onclick="" class="ui icon button"><i class="align right icon"></i></button>
 
@@ -336,11 +336,11 @@
 								<button title="Align to Vertical Center" onclick="Polargraph.ui.clipping.centerVertical()" class="ui icon button"><i class="ellipsis vertical icon"></i></button>
 
 								<div style="height:5px"></div>
-								<p>Size</p>
+								<label>Size</label><br />
 
-								<div class="ui form">
+								<div class="ui ">
 									<div class="field">
-										<select class="ui search dropdown" @change="changeClippingSize($event)" v-model="clippingSize">
+										<select @change="changeClippingSize($event)" v-model="clippingSizeName">
 											<option v-for="option in polargraph.ui.paperSizes" v-bind:value="option.name">
 												{{ option.caption }}
 											</option>

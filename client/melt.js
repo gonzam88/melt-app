@@ -504,7 +504,6 @@ var Polargraph = (function() {
         ui.canvas.add(ui.clippingRect);
 
         ui.clippingRect.on('modified', function(obj) {
-            console.log("modified")
             ui.clippingRect.set({
                 width: obj.target.width * obj.target.scaleX,
                 height: obj.target.height * obj.target.scaleY,
@@ -518,8 +517,9 @@ var Polargraph = (function() {
             preferences.set("clipping.height", obj.target.height);
             ui.clippingRect.setCoords();
 
+            vue.clippingSizeName="custom"
+            Polargraph.preferences.set("clipping.sizeName","custom")
         })
-
 
         // Mousewheel Zoom
         ui.canvas.on('mouse:wheel', function(opt) {
@@ -1629,6 +1629,7 @@ var vue = new Vue({
     el: '#app',
     data: {
         polargraph: Polargraph, // Synced with polargraph vars and funcs
+        clippingSizeName: Polargraph.preferences.get("clipping.sizeName"),
     },
     methods: {
         insertCode: function(code) {
@@ -1646,15 +1647,17 @@ var vue = new Vue({
                 return obj.name == e.target.value
             })[0]
 
-            Polargraph.ui.clippingRect.set({
-                width: selected.width * Polargraph.factors.mmToPx,
-                height: selected.height * Polargraph.factors.mmToPx,
-            });
+            let w = selected.width * Polargraph.factors.mmToPx
+            let h =selected.height * Polargraph.factors.mmToPx
 
+            Polargraph.ui.clippingRect.set({
+                width: w,
+                height: h,
+            });
             Polargraph.ui.canvasNeedsRender = true;
             Polargraph.preferences.set("clipping.sizeName", e.target.value);
-
-            // console.log(selected.width, selected.height)
+            Polargraph.preferences.set("clipping.width", w)
+            Polargraph.preferences.set("clipping.height", h)
         }
     },
     computed: {
@@ -1666,10 +1669,12 @@ var vue = new Vue({
                 }
             },
             set: function(e) {
-                Polargraph.ui.clippingRect.set({ width: e * Polargraph.factors.mmToPx });
-                Polargraph.ui.clippingRect.setCoords();
-                Polargraph.ui.canvasNeedsRender = true;
-                Polargraph.preferences.set("clipping.width", e)
+                let newpx = e * Polargraph.factors.mmToPx
+                Polargraph.ui.clippingRect.set({ width: newpx });
+                Polargraph.ui.clippingRect.setCoords(); Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.preferences.set("clipping.width", newpx)
+                vue.clippingSizeName="custom"
+                Polargraph.preferences.set("clipping.sizeName","custom")
                 return e
             },
         },
@@ -1682,18 +1687,11 @@ var vue = new Vue({
             },
             set: function(e) {
                 Polargraph.ui.clippingRect.set({ height: e * Polargraph.factors.mmToPx });
-                Polargraph.ui.clippingRect.setCoords();
-                Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.ui.clippingRect.setCoords(); Polargraph.ui.canvasNeedsRender = true;
                 Polargraph.preferences.set("clipping.height", e)
+                vue.clippingSizeName="custom"
+                Polargraph.preferences.set("clipping.sizeName","custom")
                 return e
-            },
-        },
-        clippingSize: {
-            get: function() {
-                return this.polargraph.preferences.get('clipping.sizeName');
-            },
-            set: function(e) {
-                this.polargraph.preferences.set('clipping.sizeName', e);
             },
         },
         clipArea: {

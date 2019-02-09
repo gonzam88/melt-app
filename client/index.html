@@ -326,38 +326,46 @@
 							<div class="ui checkbox">
 								<input id="clipArea" type="checkbox" v-model="clipArea">
 								<label for="clipArea">Enabled</label>
-								</div>
-								<div style="height:5px"></div>
-								<label>Position</label><br />
-								<button title="Align to Left" onclick="" class="ui icon button"><i class="align left icon"></i></button>
-								<button title="Align to Right" onclick="" class="ui icon button"><i class="align right icon"></i></button>
+							</div>
+							<div style="height:5px"></div>
+							<label>Position</label><br />
 
+							<div class="ui icon buttons">
+								<button title="Align to Left" class="ui icon button" onclick="Polargraph.ui.clipping.alignLeft()"><i class="align left icon"></i></button>
+								<button title="Align to Right" class="ui icon button" onclick="Polargraph.ui.clipping.alignRight()"><i class="align right icon"></i></button>
+							</div>
+							<div class="ui icon buttons">
 								<button title="Align to Horizontal Center" onclick="Polargraph.ui.clipping.centerHorizontal()" class="ui icon button"><i class="ellipsis horizontal icon"></i></button>
 								<button title="Align to Vertical Center" onclick="Polargraph.ui.clipping.centerVertical()" class="ui icon button"><i class="ellipsis vertical icon"></i></button>
+							</div>
+							<div class="ui icon buttons">
+								<button title="Align to Top" onclick="Polargraph.ui.clipping.alignTop()" class="ui icon button"><i class="sort amount up icon"></i></button>
+								<button title="Align to Bottom" onclick="Polargraph.ui.clipping.alignBottom()" class="ui icon button"><i class="sort amount down icon"></i></button>
+							</div>
 
-								<div style="height:5px"></div>
-								<label>Size</label><br />
+							<div style="height:5px"></div>
+							<label>Size</label><br />
 
-								<div class="ui ">
+							<div class="ui ">
+								<div class="field">
+									<select @change="changeClippingSize($event)" v-model="clippingSizeName">
+										<option v-for="option in polargraph.ui.paperSizes" v-bind:value="option.name">
+											{{ option.caption }}
+										</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="ui form">
+								<div class="fields">
 									<div class="field">
-										<select @change="changeClippingSize($event)" v-model="clippingSizeName">
-											<option v-for="option in polargraph.ui.paperSizes" v-bind:value="option.name">
-												{{ option.caption }}
-											</option>
-										</select>
+										<input type="number" placeholder="Width" v-model="clipperWidth">
+									</div> x
+									<div class="field">
+										<input type="number" placeholder="Height" v-model="clipperHeight">
 									</div>
 								</div>
-
-								<div class="ui form">
-									<div class="fields">
-										<div class="field">
-											<input type="number" placeholder="Width" v-model="clipperWidth">
-										</div> x
-										<div class="field">
-											<input type="number" placeholder="Height" v-model="clipperHeight">
-										</div>
-									</div>
-								</div>
+							</div>
 
 
 							<div class="ui divider"></div>

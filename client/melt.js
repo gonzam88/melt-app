@@ -192,6 +192,22 @@ var Polargraph = (function() {
             centerVertical: function() {
                 ui.clippingRect.top = (machine.heightMM * factors.mmToPx / 2) - (ui.clippingRect.height/ 2);
                 ui.canvasNeedsRender = true;
+            },
+            alignLeft:function(){
+                Polargraph.ui.clippingRect.left=0
+                ui.canvasNeedsRender = true;
+            },
+            alignRight:function(){
+                Polargraph.ui.clippingRect.left = (width*Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.width;
+                ui.canvasNeedsRender = true;
+            },
+            alignTop:function(){
+                Polargraph.ui.clippingRect.top=0
+                ui.canvasNeedsRender = true;
+            },
+            alignBottom: function(){
+                Polargraph.ui.clippingRect.top = (height*Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.height;
+                ui.canvasNeedsRender = true;
             }
         },
         paperSizes: paperSizes

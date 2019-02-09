@@ -182,13 +182,15 @@ var Polargraph = (function() {
         operatingSystem: remote.getGlobal('sharedData').os,
         clippingRect: null,
         clipping: {
+            width: 12,
+            height: 345,
             rect: null,
             centerHorizontal: function() {
-                ui.clippingRect.left = (machine.widthMM * factors.mmToPx / 2) - (ui.clippingRect.width * ui.clippingRect.scaleY / 2);
+                ui.clippingRect.left = (machine.widthMM * factors.mmToPx / 2) - (ui.clippingRect.width / 2);
                 ui.canvasNeedsRender = true
             },
             centerVertical: function() {
-                ui.clippingRect.top = (machine.heightMM * factors.mmToPx / 2) - (ui.clippingRect.height * ui.clippingRect.scaleX / 2);
+                ui.clippingRect.top = (machine.heightMM * factors.mmToPx / 2) - (ui.clippingRect.height/ 2);
                 ui.canvasNeedsRender = true;
             }
         },
@@ -502,14 +504,22 @@ var Polargraph = (function() {
         ui.canvas.add(ui.clippingRect);
 
         ui.clippingRect.on('modified', function(obj) {
+            console.log("modified")
+            ui.clippingRect.set({
+                width: obj.target.width * obj.target.scaleX,
+                height: obj.target.height * obj.target.scaleY,
+                scaleY: 1,
+                scaleX: 1
+            });
+
             preferences.set("clipping.left", obj.target.left);
             preferences.set("clipping.top", obj.target.top);
-            preferences.set("clipping.width", obj.target.width * obj.target.scaleX);
-            preferences.set("clipping.height", obj.target.height * obj.target.scaleY);
-
+            preferences.set("clipping.width", obj.target.width);
+            preferences.set("clipping.height", obj.target.height);
             ui.clippingRect.setCoords();
 
         })
+
 
         // Mousewheel Zoom
         ui.canvas.on('mouse:wheel', function(opt) {
@@ -1613,6 +1623,8 @@ var Polargraph = (function() {
 
 })();
 
+
+
 var vue = new Vue({
     el: '#app',
     data: {
@@ -1637,8 +1649,6 @@ var vue = new Vue({
             Polargraph.ui.clippingRect.set({
                 width: selected.width * Polargraph.factors.mmToPx,
                 height: selected.height * Polargraph.factors.mmToPx,
-                scaleY: 1,
-                scaleX: 1
             });
 
             Polargraph.ui.canvasNeedsRender = true;
@@ -1648,12 +1658,42 @@ var vue = new Vue({
         }
     },
     computed: {
-        clippingSize: {
+        clipperWidth: {
             get: function() {
-                return Polargraph.preferences.get('clipping.sizeName');
+                if(Polargraph.ui.clippingRect){
+                    let n = Polargraph.ui.clippingRect.width * Polargraph.factors.pxToMM
+                    return parseInt(n);
+                }
             },
             set: function(e) {
-                Polargraph.preferences.set('clipping.sizeName', e);
+                Polargraph.ui.clippingRect.set({ width: e * Polargraph.factors.mmToPx });
+                Polargraph.ui.clippingRect.setCoords();
+                Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.preferences.set("clipping.width", e)
+                return e
+            },
+        },
+        clipperHeight: {
+            get: function() {
+                if(Polargraph.ui.clippingRect){
+                    let n = Polargraph.ui.clippingRect.height * Polargraph.factors.pxToMM
+                    return parseInt(n);
+                }
+            },
+            set: function(e) {
+                Polargraph.ui.clippingRect.set({ height: e * Polargraph.factors.mmToPx });
+                Polargraph.ui.clippingRect.setCoords();
+                Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.preferences.set("clipping.height", e)
+                return e
+            },
+        },
+        clippingSize: {
+            get: function() {
+                return this.polargraph.preferences.get('clipping.sizeName');
+            },
+            set: function(e) {
+                this.polargraph.preferences.set('clipping.sizeName', e);
             },
         },
         clipArea: {
@@ -1886,7 +1926,7 @@ var endShape = function() {
         let bbox = Polargraph.ui.clippingRect;
         _shapeSketchVerticesArr = lineclip.polygon(
             _shapeSketchVerticesArr, // shape
-            [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left + (bbox.scaleX * bbox.width)) * Polargraph.factors.pxToMM, (bbox.top + (bbox.scaleY * bbox.height)) * Polargraph.factors.pxToMM]
+            [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left +  bbox.width) * Polargraph.factors.pxToMM, (bbox.top +  bbox.height) * Polargraph.factors.pxToMM]
         );
         if (_shapeSketchVerticesArr[0] == undefined) return; // Toda la linea esta por fuera
     }
@@ -1916,67 +1956,11 @@ function _verticesArrToObj(ele) {
 
 
 var line = function(x1, y1, x2, y2) {
-    /// <summary>Draws a line from (x1, y1) to (x2, y2). Positions should be set in millimetres. Warning! If called between StartPath() and EndPath(), pen will not be raised when moving to starting coordinate</summary>
-    // if (Polargraph.preferences.store.clipping.enabled) {
-    //     let bbox = Polargraph.ui.clippingRect;
-    //     let clip = lineclip(
-    //         [
-    //             [x1, y1],
-    //             [x2, y2]
-    //         ], // line
-    //         [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left + (bbox.scaleX * bbox.width)) * Polargraph.factors.pxToMM, (bbox.top + (bbox.scaleY * bbox.height)) * Polargraph.factors.pxToMM]
-    //     ); // clipping box
-    //     // console.log(clip)
-    //     if (clip[0] == undefined) return; // Toda la linea esta por fuera
-    //
-    //     x1 = clip[0][0][0];
-    //     y1 = clip[0][0][1];
-    //     x2 = clip[0][1][0];
-    //     y2 = clip[0][1][1];
-    // }
-
-    //
-    // Polargraph.ui.canvas.add(new fabric.Line([
-    //     x1 * Polargraph.factors.mmToPx,
-    //     y1 * Polargraph.factors.mmToPx,
-    //     x2 * Polargraph.factors.mmToPx,
-    //     y2 * Polargraph.factors.mmToPx
-    // ], {
-    //     stroke: 'rgba(255,255,255,.5)',
-    //     isSketch: true
-    // }));
-    //
-    // if (!Polargraph.preferences.store.isOnlySketching) {
-    //     if (thickness < 1) thickness = 1;
-    //     thickness = parseInt(thickness);
-    //
-    //     if (!isDrawingPath) {
-    //         PenUp();
-    //     }
-    //     // Width means going over the same line several times
-    //     for (let i = 0; i < thickness; i++) {
-    //         if (isEven(i) && thickness > 1) {
-    //             Polargraph.AddMMCoordToQueue(x2, y2);
-    //             if (i == 0) PenDown();
-    //             Polargraph.AddMMCoordToQueue(x1, y1);
-    //         } else {
-    //             Polargraph.AddMMCoordToQueue(x1, y1);
-    //             if (i == 0) PenDown();
-    //             Polargraph.AddMMCoordToQueue(x2, y2);
-    //         }
-    //     }
-    //     if (!isDrawingPath) {
-    //         PenUp();
-    //     }
-    // }
     beginShape()
     vertex(x1,y1);
     vertex(x2,y2);
     endShape()
 }
-
-
-
 
 
 var ellipse = function(centerX, centerY, radius, resolution = 100) {
@@ -2068,7 +2052,6 @@ var text = function(string, startX = 0, startY = 0) {
             xOffset += 1.7 * _textSize * letraSvg.o; // letraSvg.o es el espaciado de cada letra
             endShape();
         }
-
     })
 }
 

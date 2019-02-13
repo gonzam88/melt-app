@@ -157,6 +157,8 @@ var Polargraph = (function() {
         machine: {
             lineRight: null,
             lineLeft: null,
+            lineRightBelt: null,
+            lineLeftBelt: null,
             rightCircle: null,
             leftCircle: null,
             squareBounds: null,
@@ -403,6 +405,17 @@ var Polargraph = (function() {
             selectable: false
         });
 
+        fabric.Object.prototype.getZIndex = function() {
+            return this.canvas.getObjects().indexOf(this);
+        }
+
+        fabric.Canvas.prototype.addToPosition = function(object,position) {
+            this.add(object);
+            while(object.getZIndex() > position) {
+                this.sendBackwards(object);
+            }
+        }
+
         window.addEventListener('resize', resizeCanvas, false);
 
         // Define some fabric.js elements
@@ -418,33 +431,70 @@ var Polargraph = (function() {
         })
         ui.canvas.add(ui.machine.squareBounds);
 
+
+
+        // ui.machine.rightCircle = new fabric.Circle({
+        //     radius: 6,
+        //     fill: 'white',
+        //     left: machine.motors.rightPosPx.x,
+        //     top: machine.motors.rightPosPx.y,
+        // });
+        // ui.machine.leftCircle = new fabric.Circle({
+        //     radius: 6,
+        //     fill: 'white',
+        //     left: machine.motors.leftPosPx.x,
+        //     top: machine.motors.rightPosPx.y,
+        // });
+        // ui.canvas.add(ui.machine.rightCircle);
+        // ui.canvas.add(ui.machine.leftCircle);
+
+        let stepperPath = path.join(path.dirname(__dirname), 'extraResources', 'graphics', 'stepper-motor.png');
+        fabric.Image.fromURL(stepperPath, function(instance) {
+          // scale image down, and flip it, before adding it onto canvas
+          instance.set({ left: 0, top: 0 }).scale(0.03);
+          ui.canvas.add(instance);
+          ui.machine.leftCircle = instance;
+        });
+
+        // ui.canvas.sendToBack(ui.machine.leftCircle)
+
+        // TODO: Clone, not load again
+        fabric.Image.fromURL(stepperPath, function(instance) {
+          // scale image down, and flip it, before adding it onto canvas
+          instance.set({ left: machine.motors.leftPosPx.x, top: machine.motors.rightPosPx.y }).scale(0.03);
+          ui.canvas.add(instance);
+          ui.machine.rightCircle = instance;
+        });
+
         ui.machine.lineRight = new fabric.Line([machine.motors.rightPosPx.x, machine.motors.rightPosPx.y, 0, 0], {
             left: 0,
             top: 0,
-            stroke: 'grey',
+            strokeWidth: 0.5,
+            stroke: '#232323',
         });
         ui.machine.lineLeft = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
             left: 0,
             top: 0,
-            stroke: 'grey',
+            strokeWidth: 0.5,
+            stroke: '#232323',
         });
         ui.canvas.add(ui.machine.lineRight);
         ui.canvas.add(ui.machine.lineLeft);
 
-        ui.machine.rightCircle = new fabric.Circle({
-            radius: 6,
-            fill: 'white',
-            left: machine.motors.rightPosPx.x,
-            top: machine.motors.rightPosPx.y,
+        ui.machine.lineRightBelt = new fabric.Line([machine.motors.rightPosPx.x, machine.motors.rightPosPx.y, 0, 0], {
+            left: 0,
+            top: 0,
+            strokeWidth: 1,
+            stroke: '#232323',
         });
-        ui.machine.leftCircle = new fabric.Circle({
-            radius: 6,
-            fill: 'white',
-            left: machine.motors.leftPosPx.x,
-            top: machine.motors.rightPosPx.y,
+        ui.machine.lineLeftBelt = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
+            left: -0,
+            top: -0,
+            strokeWidth: 1,
+            stroke: '#232323',
         });
-        ui.canvas.add(ui.machine.rightCircle);
-        ui.canvas.add(ui.machine.leftCircle);
+        ui.canvas.add(ui.machine.lineRightBelt);
+        ui.canvas.add(ui.machine.lineLeftBelt);
 
         ui.homeSquare = new fabric.Triangle({
             left: 0,
@@ -518,6 +568,7 @@ var Polargraph = (function() {
             vue.clippingSizeName="custom"
             Polargraph.preferences.set("clipping.sizeName","custom")
         })
+
 
         // Mousewheel Zoom
         ui.canvas.on('mouse:wheel', function(opt) {
@@ -934,12 +985,36 @@ var Polargraph = (function() {
         ui.canvas.setHeight($('#canvasSizer').height());
         ui.canvas.setWidth($('#canvasSizer').width());
 
-        let offX = (ui.canvas.width - ui.machine.squareBounds.width) / 2;
-        let offY = (ui.canvas.height - ui.machine.squareBounds.height) / 2;
-
-        ui.canvas.viewportTransform[4] = offX;
-        ui.canvas.viewportTransform[5] = offY;
+        // let offX = (ui.canvas.width - ui.machine.squareBounds.width) / 2;
+        // let offY = (ui.canvas.height - ui.machine.squareBounds.height) / 2;
+        //
+        // ui.canvas.viewportTransform[4] = offX;
+        // ui.canvas.viewportTransform[5] = offY;
         ui.canvas.requestRenderAll();
+    }
+
+    var centerCamera = function(){
+        let hDiff = ui.canvas.height - ui.machine.squareBounds.height;
+        let wDiff = ui.canvas.width - ui.machine.squareBounds.width;
+        let zoom;
+
+        if(hDiff < wDiff){
+            ui.canvas.zoomToPoint(new fabric.Point(ui.canvas.width / 2, ui.canvas.height / 2), (ui.canvas.height / ui.machine.squareBounds.height)-0.2);
+        }else{
+            ui.canvas.zoomToPoint(new fabric.Point(ui.canvas.width / 2, ui.canvas.height / 2), (ui.canvas.width / ui.machine.squareBounds.width)-0.2);
+        }
+
+        let offX = wDiff / 2;
+        let offY = hDiff / 2;
+
+        console.log(wDiff,hDiff)
+        console.log(offX,offY)
+        //
+        ui.canvas.viewportTransform[4] = 0
+        ui.canvas.viewportTransform[5] = 0;
+        ui.canvasNeedsRender = true;
+
+        Polargraph.ui.canvas.renderAll();
     }
 
     var _codePluginInit = function() {
@@ -948,7 +1023,6 @@ var Polargraph = (function() {
 
         var ace = require('brace');
         require('brace/mode/javascript');
-
         require('brace/keybinding/vim');
 
         editor = ace.edit('editor');
@@ -1181,24 +1255,36 @@ var Polargraph = (function() {
         machine.widthSteps = machine.widthMM * machine.stepsPerMM;
         machine.heightMMSteps = machine.heightMM * machine.stepsPerMM;
 
+        beltLengthMaxLength = Math.sqrt( Math.pow(machine.widthMM * factors.mmToPx,2) +  Math.pow(machine.heightMM * factors.mmToPx,2) );
+
         leftMotorPositionSteps = new Victor(0, 0);
         rightMotorPositionSteps = new Victor(0, machine.widthSteps);
 
         machine.motors.rightPosPx.x = machine.widthMM * factors.mmToPx;
 
-        ui.machine.rightCircle.left = machine.motors.rightPosPx.x;
+        ui.machine.rightCircle.set({left : machine.motors.rightPosPx.x})
         ui.machine.lineRight.set({
-            'x1': ui.machine.rightCircle.left,
+            'x1': machine.motors.rightPosPx.x,
+            'y1': 0
+        })
+        ui.machine.lineRightBelt.set({
+            'x1': machine.motors.rightPosPx.x +1,
+            'x2': machine.motors.rightPosPx.x +1,
             'y1': 0
         })
 
         ui.machine.squareBounds.set({
-            'width': ui.machine.rightCircle.left,
+            'width': machine.motors.rightPosPx.x,
             'height': machine.heightMM * factors.mmToPx
         });
 
         factors.pxPerStep = machine.widthSteps / machine.motors.rightPosPx.x;
         factors.stepPerPx = machine.motors.rightPosPx.x / machine.widthSteps;
+
+        ui.machine.lineRight.bringToFront()
+        ui.machine.lineLeft.bringToFront()
+        ui.machine.lineRightBelt.bringToFront()
+        ui.machine.lineLeftBelt.bringToFront()
 
         ui.canvasNeedsRender = true;
         resizeCanvas();
@@ -1270,8 +1356,14 @@ var Polargraph = (function() {
         let cmd = "C17," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",2,END";
         _AddToQueue(cmd);
     }
+
+    var beltLengthMaxLength;
     var UpdatePositionMetadata = function(vec) {
         // Linea Motor
+        let disToLMotor = vec.distance(machine.motors.leftPosPx);
+        let disToRMotor = vec.distance(machine.motors.rightPosPx);
+
+        // Lines
         ui.machine.lineRight.set({
             'x2': vec.x,
             'y2': vec.y
@@ -1281,17 +1373,26 @@ var Polargraph = (function() {
             'y2': vec.y
         });
 
+        console.log(beltLengthMaxLength)
+        // Excess belt lines (just for coolnes :) )
+        ui.machine.lineRightBelt.set({
+            // 'x2': vec.x,
+            'y2': Math.max(0,beltLengthMaxLength - disToRMotor)
+        });
+        ui.machine.lineLeftBelt.set({
+            // 'x2': vec.x,
+            'y2': Math.max(0,beltLengthMaxLength - disToLMotor)
+        });
+
         dom.get("#canvasMetaData .x").html(Math.round(vec.x));
         dom.get("#canvasMetaData .y").html(Math.round(vec.y));
 
         dom.get("#canvasMetaData .xmm").html((vec.x * factors.pxToMM).toFixed(1));
         dom.get("#canvasMetaData .ymm").html((vec.y * factors.pxToMM).toFixed(1));
 
-        let disToLMotor = vec.distance(machine.motors.leftPosPx);
         dom.get("#canvasMetaData .lmotomm").html((disToLMotor * factors.pxToMM).toFixed(1));
         dom.get("#canvasMetaData .lmotosteps").html((disToLMotor * factors.pxPerStep).toFixed(1));
 
-        let disToRMotor = vec.distance(machine.motors.rightPosPx);
         dom.get("#canvasMetaData .rmotomm").html((disToRMotor * factors.pxToMM).toFixed(1));
         dom.get("#canvasMetaData .rmotosteps").html((disToRMotor * factors.pxPerStep).toFixed(1));
 
@@ -1617,6 +1718,7 @@ var Polargraph = (function() {
             done: batchDone,
             total: batchTotal
         },
+        test: ()=>{centerCamera()}
     };
 
 })();

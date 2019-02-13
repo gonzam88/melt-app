@@ -402,9 +402,18 @@
 
 							<div class="ui divider"></div>
 							<h5>User Preferences</h5>
-							<div class="ui checkbox">
-								<input id="checkUpdates" type="checkbox" v-model="checkUpdates">
-								<label for="checkUpdates">Check for Updates</label>
+							<div>
+								<div class="ui checkbox">
+									<input id="checkUpdates" type="checkbox" v-model="checkUpdates">
+									<label for="checkUpdates">Check for Updates</label>
+								</div>
+							</div>
+
+							<div>
+								<div class="ui checkbox">
+									<input id="autoSetHome" type="checkbox" v-model="autoSetHome">
+									<label for="autoSetHome">Set Home Position on Startup </label><small>(Melt will remember the last place your pen was)</small>
+								</div>
 							</div>
 
 							<!-- separator -->
@@ -444,7 +453,7 @@
 					</div> <!-- dimmer -->
 
 					<div id="canvasSizer">
-						<canvas id="myCanvas"></canvas>
+						<canvas id="myCanvas" class="hidden"></canvas>
 					</div>
 					<div id="canvasMetaData">
 						X: <span class="x"></span>,

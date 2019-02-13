@@ -83,6 +83,11 @@ var Polargraph = (function() {
 
     var preferences = new Store({
         defaults: {
+            lastPenPos: {
+                x: 0,
+                y: 0
+            },
+            autoSetHome: true,
             checkLatestVersion: true,
             editorTheme: "monokai",
             isOnlySketching: false,
@@ -192,23 +197,23 @@ var Polargraph = (function() {
                 ui.canvasNeedsRender = true
             },
             centerVertical: function() {
-                ui.clippingRect.top = (machine.heightMM * factors.mmToPx / 2) - (ui.clippingRect.height/ 2);
+                ui.clippingRect.top = (machine.heightMM * factors.mmToPx / 2) - (ui.clippingRect.height / 2);
                 ui.canvasNeedsRender = true;
             },
-            alignLeft:function(){
-                Polargraph.ui.clippingRect.left=0
+            alignLeft: function() {
+                Polargraph.ui.clippingRect.left = 0
                 ui.canvasNeedsRender = true;
             },
-            alignRight:function(){
-                Polargraph.ui.clippingRect.left = (width*Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.width;
+            alignRight: function() {
+                Polargraph.ui.clippingRect.left = (width * Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.width;
                 ui.canvasNeedsRender = true;
             },
-            alignTop:function(){
-                Polargraph.ui.clippingRect.top=0
+            alignTop: function() {
+                Polargraph.ui.clippingRect.top = 0
                 ui.canvasNeedsRender = true;
             },
-            alignBottom: function(){
-                Polargraph.ui.clippingRect.top = (height*Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.height;
+            alignBottom: function() {
+                Polargraph.ui.clippingRect.top = (height * Polargraph.factors.mmToPx) - Polargraph.ui.clippingRect.height;
                 ui.canvasNeedsRender = true;
             }
         },
@@ -409,9 +414,9 @@ var Polargraph = (function() {
             return this.canvas.getObjects().indexOf(this);
         }
 
-        fabric.Canvas.prototype.addToPosition = function(object,position) {
+        fabric.Canvas.prototype.addToPosition = function(object, position) {
             this.add(object);
-            while(object.getZIndex() > position) {
+            while (object.getZIndex() > position) {
                 this.sendBackwards(object);
             }
         }
@@ -450,20 +455,26 @@ var Polargraph = (function() {
 
         let stepperPath = path.join(path.dirname(__dirname), 'extraResources', 'graphics', 'stepper-motor.png');
         fabric.Image.fromURL(stepperPath, function(instance) {
-          // scale image down, and flip it, before adding it onto canvas
-          instance.set({ left: 0, top: 0 }).scale(0.03);
-          ui.canvas.add(instance);
-          ui.machine.leftCircle = instance;
+            // scale image down, and flip it, before adding it onto canvas
+            instance.set({
+                left: 0,
+                top: 0
+            }).scale(0.03);
+            ui.canvas.add(instance);
+            ui.machine.leftCircle = instance;
         });
 
         // ui.canvas.sendToBack(ui.machine.leftCircle)
 
         // TODO: Clone, not load again
         fabric.Image.fromURL(stepperPath, function(instance) {
-          // scale image down, and flip it, before adding it onto canvas
-          instance.set({ left: machine.motors.leftPosPx.x, top: machine.motors.rightPosPx.y }).scale(0.03);
-          ui.canvas.add(instance);
-          ui.machine.rightCircle = instance;
+            // scale image down, and flip it, before adding it onto canvas
+            instance.set({
+                left: machine.motors.leftPosPx.x,
+                top: machine.motors.rightPosPx.y
+            }).scale(0.03);
+            ui.canvas.add(instance);
+            ui.machine.rightCircle = instance;
         });
 
         ui.machine.lineRight = new fabric.Line([machine.motors.rightPosPx.x, machine.motors.rightPosPx.y, 0, 0], {
@@ -565,8 +576,8 @@ var Polargraph = (function() {
             preferences.set("clipping.height", obj.target.height);
             ui.clippingRect.setCoords();
 
-            vue.clippingSizeName="custom"
-            Polargraph.preferences.set("clipping.sizeName","custom")
+            vue.clippingSizeName = "custom"
+            Polargraph.preferences.set("clipping.sizeName", "custom")
         })
 
 
@@ -606,7 +617,6 @@ var Polargraph = (function() {
                     SetPenPositionPixels(ui.mousePos.x, ui.mousePos.y);
                     ui.isSettingPenPos = false; // SHould this go here or inside the function SetPenPositionPixels ?
                     DeactivateToggles();
-                    $("#set-custom-postion").removeClass("teal");
                 } else if (ui.isSettingNewPenPosition) {
                     SetNextPenPositionPixels(ui.mousePos.x, ui.mousePos.y);
                     // ui.isSettingNewPenPosition = false;
@@ -993,28 +1003,31 @@ var Polargraph = (function() {
         ui.canvas.requestRenderAll();
     }
 
-    var centerCamera = function(){
+    var centerCameraAndZoom = function() {
+        let zoomPadding = 6
+
         let hDiff = ui.canvas.height - ui.machine.squareBounds.height;
-        let wDiff = ui.canvas.width - ui.machine.squareBounds.width;
+        let vDiff = ui.canvas.width - ui.machine.squareBounds.width;
         let zoom;
 
-        if(hDiff < wDiff){
-            ui.canvas.zoomToPoint(new fabric.Point(ui.canvas.width / 2, ui.canvas.height / 2), (ui.canvas.height / ui.machine.squareBounds.height)-0.2);
-        }else{
-            ui.canvas.zoomToPoint(new fabric.Point(ui.canvas.width / 2, ui.canvas.height / 2), (ui.canvas.width / ui.machine.squareBounds.width)-0.2);
+        if (hDiff < vDiff) {
+            zoom = ui.canvas.height / ui.machine.squareBounds.height
+        } else {
+            zoom = ui.canvas.width / ui.machine.squareBounds.width
         }
+        ui.canvas.setZoom(1) // reset zoom so pan actions work as expected
+        vpw = ui.canvas.width / zoom
+        vph = ui.canvas.height / zoom
+        x = ui.machine.squareBounds.left - zoomPadding // x is the location where the top left of the viewport should be
+        y = ui.machine.squareBounds.top - zoomPadding // y idem
+        ui.canvas.absolutePan({
+            x: x,
+            y: y
+        })
+        ui.canvas.setZoom(zoom - (zoomPadding / 10))
 
-        let offX = wDiff / 2;
-        let offY = hDiff / 2;
-
-        console.log(wDiff,hDiff)
-        console.log(offX,offY)
-        //
-        ui.canvas.viewportTransform[4] = 0
-        ui.canvas.viewportTransform[5] = 0;
         ui.canvasNeedsRender = true;
-
-        Polargraph.ui.canvas.renderAll();
+        ui.canvas.renderAll();
     }
 
     var _codePluginInit = function() {
@@ -1255,21 +1268,23 @@ var Polargraph = (function() {
         machine.widthSteps = machine.widthMM * machine.stepsPerMM;
         machine.heightMMSteps = machine.heightMM * machine.stepsPerMM;
 
-        beltLengthMaxLength = Math.sqrt( Math.pow(machine.widthMM * factors.mmToPx,2) +  Math.pow(machine.heightMM * factors.mmToPx,2) );
+        beltLengthMaxLength = Math.sqrt(Math.pow(machine.widthMM * factors.mmToPx, 2) + Math.pow(machine.heightMM * factors.mmToPx, 2));
 
         leftMotorPositionSteps = new Victor(0, 0);
         rightMotorPositionSteps = new Victor(0, machine.widthSteps);
 
         machine.motors.rightPosPx.x = machine.widthMM * factors.mmToPx;
 
-        ui.machine.rightCircle.set({left : machine.motors.rightPosPx.x})
+        ui.machine.rightCircle.set({
+            left: machine.motors.rightPosPx.x
+        })
         ui.machine.lineRight.set({
             'x1': machine.motors.rightPosPx.x,
             'y1': 0
         })
         ui.machine.lineRightBelt.set({
-            'x1': machine.motors.rightPosPx.x +1,
-            'x2': machine.motors.rightPosPx.x +1,
+            'x1': machine.motors.rightPosPx.x + 1,
+            'x2': machine.motors.rightPosPx.x + 1,
             'y1': 0
         })
 
@@ -1281,13 +1296,25 @@ var Polargraph = (function() {
         factors.pxPerStep = machine.widthSteps / machine.motors.rightPosPx.x;
         factors.stepPerPx = machine.motors.rightPosPx.x / machine.widthSteps;
 
+        console.log("last pen pos", preferences.get("lastPenPos"))
+
         ui.machine.lineRight.bringToFront()
         ui.machine.lineLeft.bringToFront()
         ui.machine.lineRightBelt.bringToFront()
         ui.machine.lineLeftBelt.bringToFront()
 
+        // TODO: if setting to auto-set home to last position
+        if (preferences.get('autoSetHome')) {
+            let savedPenPos = preferences.get('lastPenPos');
+            SetPenPositionPixels(savedPenPos.x, savedPenPos.y)
+        }
+
+
         ui.canvasNeedsRender = true;
         resizeCanvas();
+        centerCameraAndZoom();
+        dom.get('canvas').removeClass('hidden');
+
         DrawGrid();
     }
     var SetPenPositionPixels = function(_x, _y) {
@@ -1307,8 +1334,15 @@ var Polargraph = (function() {
 
         let cmd = "C09," + Math.round(leftMotorDist) + "," + Math.round(rightMotorDist) + ",END";
         _SerialSend(cmd);
+
+        preferences.set("lastPenPos", {
+            x: _x,
+            y: _y
+        })
+
         dom.get("#return-home").removeClass("disabled");
         dom.get("#control-pen-position").removeClass("disabled");
+        dom.get("#set-custom-postion").removeClass("teal");
     }
     var SyncGondolaPosition = function(_x, _y) {
         ui.penPositionPixels.x = _x;
@@ -1373,15 +1407,14 @@ var Polargraph = (function() {
             'y2': vec.y
         });
 
-        console.log(beltLengthMaxLength)
         // Excess belt lines (just for coolnes :) )
         ui.machine.lineRightBelt.set({
             // 'x2': vec.x,
-            'y2': Math.max(0,beltLengthMaxLength - disToRMotor)
+            'y2': Math.max(0, beltLengthMaxLength - disToRMotor)
         });
         ui.machine.lineLeftBelt.set({
             // 'x2': vec.x,
-            'y2': Math.max(0,beltLengthMaxLength - disToLMotor)
+            'y2': Math.max(0, beltLengthMaxLength - disToLMotor)
         });
 
         dom.get("#canvasMetaData .x").html(Math.round(vec.x));
@@ -1416,6 +1449,13 @@ var Polargraph = (function() {
         // Fired when receives a 'ready' message from machine
         ui.movementLine.visible = false;
         ui.canvasNeedsRender = true;
+        if (futurePos) {
+            preferences.set("lastPenPos", {
+                x: futurePos.x * factors.stepPerPx,
+                y: futurePos.y * factors.stepPerPx
+            })
+        }
+
 
         statusIcon.element.html(statusIcon.success);
         machine.isReady = true;
@@ -1438,6 +1478,7 @@ var Polargraph = (function() {
     // *******
     var externalQueueLength = 0;
     var showNotificationOnFinish = false;
+    var futurePos;
 
     var CheckQueue = function() {
         // TODO ! Move sending commands to objects, in pixels.
@@ -1450,7 +1491,7 @@ var Polargraph = (function() {
                 let commandString = machine.queue.shift()
                 if (commandString.startsWith("C17")) {
                     let cmdArr = commandString.split(",");
-                    let futurePos = NativeToCartesian(cmdArr[1], cmdArr[2]);
+                    futurePos = NativeToCartesian(cmdArr[1], cmdArr[2]);
                     ui.movementLine.set({
                         'x1': ui.penPositionPixels.x,
                         'y1': ui.penPositionPixels.y,
@@ -1697,9 +1738,8 @@ var Polargraph = (function() {
                 _codePluginInit();
                 // _UpdateBatchPercent();
                 _checkVersion();
-                TimeElapsed()
+                TimeElapsed();
                 initHasRun = true;
-
             }
         },
         editor: editor,
@@ -1717,8 +1757,7 @@ var Polargraph = (function() {
             percent: batchPercent,
             done: batchDone,
             total: batchTotal
-        },
-        test: ()=>{centerCamera()}
+        }
     };
 
 })();
@@ -1748,7 +1787,7 @@ var vue = new Vue({
             })[0]
 
             let w = selected.width * Polargraph.factors.mmToPx
-            let h =selected.height * Polargraph.factors.mmToPx
+            let h = selected.height * Polargraph.factors.mmToPx
 
             Polargraph.ui.clippingRect.set({
                 width: w,
@@ -1763,34 +1802,40 @@ var vue = new Vue({
     computed: {
         clipperWidth: {
             get: function() {
-                if(Polargraph.ui.clippingRect){
+                if (Polargraph.ui.clippingRect) {
                     let n = Polargraph.ui.clippingRect.width * Polargraph.factors.pxToMM
                     return parseInt(n);
                 }
             },
             set: function(e) {
                 let newpx = e * Polargraph.factors.mmToPx
-                Polargraph.ui.clippingRect.set({ width: newpx });
-                Polargraph.ui.clippingRect.setCoords(); Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.ui.clippingRect.set({
+                    width: newpx
+                });
+                Polargraph.ui.clippingRect.setCoords();
+                Polargraph.ui.canvasNeedsRender = true;
                 Polargraph.preferences.set("clipping.width", newpx)
-                vue.clippingSizeName="custom"
-                Polargraph.preferences.set("clipping.sizeName","custom")
+                vue.clippingSizeName = "custom"
+                Polargraph.preferences.set("clipping.sizeName", "custom")
                 return e
             },
         },
         clipperHeight: {
             get: function() {
-                if(Polargraph.ui.clippingRect){
+                if (Polargraph.ui.clippingRect) {
                     let n = Polargraph.ui.clippingRect.height * Polargraph.factors.pxToMM
                     return parseInt(n);
                 }
             },
             set: function(e) {
-                Polargraph.ui.clippingRect.set({ height: e * Polargraph.factors.mmToPx });
-                Polargraph.ui.clippingRect.setCoords(); Polargraph.ui.canvasNeedsRender = true;
+                Polargraph.ui.clippingRect.set({
+                    height: e * Polargraph.factors.mmToPx
+                });
+                Polargraph.ui.clippingRect.setCoords();
+                Polargraph.ui.canvasNeedsRender = true;
                 Polargraph.preferences.set("clipping.height", e)
-                vue.clippingSizeName="custom"
-                Polargraph.preferences.set("clipping.sizeName","custom")
+                vue.clippingSizeName = "custom"
+                Polargraph.preferences.set("clipping.sizeName", "custom")
                 return e
             },
         },
@@ -1837,6 +1882,15 @@ var vue = new Vue({
             set: function(e) {
                 return Polargraph.preferences.set('checkLatestVersion', e)
             },
+        },
+        autoSetHome: {
+            get: function() {
+                return Polargraph.preferences.get('autoSetHome')
+            },
+            set: function(e) {
+                return Polargraph.preferences.set('autoSetHome', e)
+            },
+
         },
         keyboardMM: {
             get: function() {
@@ -2024,7 +2078,7 @@ var endShape = function() {
         let bbox = Polargraph.ui.clippingRect;
         _shapeSketchVerticesArr = lineclip.polygon(
             _shapeSketchVerticesArr, // shape
-            [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left +  bbox.width) * Polargraph.factors.pxToMM, (bbox.top +  bbox.height) * Polargraph.factors.pxToMM]
+            [bbox.left * Polargraph.factors.pxToMM, bbox.top * Polargraph.factors.pxToMM, (bbox.left + bbox.width) * Polargraph.factors.pxToMM, (bbox.top + bbox.height) * Polargraph.factors.pxToMM]
         );
         if (_shapeSketchVerticesArr[0] == undefined) return; // Toda la linea esta por fuera
     }
@@ -2055,8 +2109,8 @@ function _verticesArrToObj(ele) {
 
 var line = function(x1, y1, x2, y2) {
     beginShape()
-    vertex(x1,y1);
-    vertex(x2,y2);
+    vertex(x1, y1);
+    vertex(x2, y2);
     endShape()
 }
 

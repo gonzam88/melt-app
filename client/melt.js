@@ -181,7 +181,7 @@ var Polargraph = (function() {
         penPositionPixels: new Victor(0, 0),
         nextPenPosition: new Victor(0, 0),
         gondolaCircle: null,
-        homeSquare: null,
+        homeIcon: null,
         homePos: null,
         movementLine: null,
         examplesFiles: null,
@@ -517,15 +517,25 @@ var Polargraph = (function() {
         ui.canvas.add(ui.machine.lineRightBelt);
         ui.canvas.add(ui.machine.lineLeftBelt);
 
-        ui.homeSquare = new fabric.Triangle({
+        // Home icon = heart shape
+        ui.homeIcon = new fabric.Path('M 272.70141,238.71731 \
+    C 206.46141,238.71731 152.70146,292.4773 152.70146,358.71731  \
+    C 152.70146,493.47282 288.63461,528.80461 381.26391,662.02535 \
+    C 468.83815,529.62199 609.82641,489.17075 609.82641,358.71731 \
+    C 609.82641,292.47731 556.06651,238.7173 489.82641,238.71731  \
+    C 441.77851,238.71731 400.42481,267.08774 381.26391,307.90481 \
+    C 362.10311,267.08773 320.74941,238.7173 272.70141,238.71731  \
+    z ');
+        var scale = 2 / ui.homeIcon.width;
+        ui.homeIcon.set({
             left: 0,
             top: 0,
-            width: 3,
-            height: 3,
-            fill: 'black',
-            visible: false
-        })
-        ui.canvas.add(ui.homeSquare)
+            scaleX: scale,
+            scaleY: scale,
+            fill: '#88C0D0',
+        });
+        ui.canvas.add(ui.homeIcon);
+
 
         ui.movementLine = new fabric.Line([0, 0, 100, 100], {
             left: 0,
@@ -537,7 +547,7 @@ var Polargraph = (function() {
         ui.canvas.add(ui.movementLine)
 
         ui.gondolaCircle = new fabric.Circle({
-            radius: 3,
+            radius: 1,
             fill: '#a4bd8e',
             left: 0,
             top: 0,
@@ -1307,7 +1317,7 @@ var Polargraph = (function() {
         })
 
         ui.machine.squareBounds.set({
-            'width': machine.motors.rightPosPx.x +1,
+            'width': machine.motors.rightPosPx.x + 1,
             'height': machine.heightMM * factors.mmToPx
         });
 
@@ -1340,9 +1350,9 @@ var Polargraph = (function() {
         ui.gondolaCircle.left = _x;
         ui.gondolaCircle.top = _y;
 
-        ui.homeSquare.top = _y;
-        ui.homeSquare.left = _x;
-        ui.homeSquare.visible = true;
+        ui.homeIcon.top = _y;
+        ui.homeIcon.left = _x;
+        ui.homeIcon.visible = true;
         homePos = new Victor(_x, _y);
         UpdatePositionMetadata(ui.penPositionPixels);
 
@@ -1740,7 +1750,7 @@ var Polargraph = (function() {
     ipc.on('togglePauseQueue', function(event, data) {
         dom.get('#pause-queue').click();
     });
-    ipc.on('quittingApp', function(event,data){
+    ipc.on('quittingApp', function(event, data) {
         usbDetect.stopMonitoring()
         // serial.port.close();
     })
@@ -1777,7 +1787,7 @@ var Polargraph = (function() {
             done: batchDone,
             total: batchTotal
         },
-        redrawGrid: function(size=5){
+        redrawGrid: function(size = 5) {
             _gridCentimeterWidth = size
             DrawGrid();
         },
@@ -1833,7 +1843,7 @@ var vue = new Vue({
                 val = Math.max(1, val);
                 val = Math.min(99, val);
                 Polargraph.redrawGrid(parseFloat(val))
-                return Polargraph.preferences.set("gridSize",val);
+                return Polargraph.preferences.set("gridSize", val);
             },
         },
         clipperWidth: {
@@ -2119,7 +2129,8 @@ var endShape = function() {
 
     Polargraph.ui.canvas.add(
         new fabric.Polyline(_shapeSketchVerticesArr.map(_verticesArrToObj), {
-            stroke: 'rgba(255,255,255,.5)',
+            stroke: 'rgba(0,0,0,1)',
+            strokeWidth: 0.2,
             isSketch: true,
             fill: 'transparent',
             originX: 'left',

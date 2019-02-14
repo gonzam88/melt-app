@@ -18,7 +18,7 @@ require('electron-titlebar');
 const SerialPort = require("serialport");
 const Readline = require('@serialport/parser-readline')
 
-const settings = require('electron-settings');
+// const settings = require('electron-settings');
 const Mousetrap = require('mousetrap');
 const usbDetect = require('usb-detection');
 var Bezier = require('bezier-js');
@@ -87,6 +87,7 @@ var Polargraph = (function() {
                 x: 0,
                 y: 0
             },
+            gridSize: 5,
             autoSetHome: true,
             checkLatestVersion: true,
             editorTheme: "monokai",
@@ -219,8 +220,6 @@ var Polargraph = (function() {
         },
         paperSizes: paperSizes
     };
-
-    var _
 
     var keyboardMovementSpeed = {
         mm: null,
@@ -355,8 +354,8 @@ var Polargraph = (function() {
     }
 
     var _serialInit = function() {
-        let myport = settings.get('serial-path')
-        if (typeof myport != "undefined") {
+        let myport = preferences.get('serialPath');
+        if (myport != undefined || myport != null) {
             SerialConnectTo(myport)
         } else {
             ListSerialPorts();
@@ -427,10 +426,9 @@ var Polargraph = (function() {
         ui.machine.squareBounds = new fabric.Rect({
             width: 0,
             height: 0,
-            left: 0,
+            left: -1,
             top: 0,
-            fill: 'rgba(255,255,255,.2)',
-            stroke: "white",
+            fill: 'rgba(222,222,222,.5)',
             originX: 'left',
             originY: 'top',
         })
@@ -482,28 +480,40 @@ var Polargraph = (function() {
             top: 0,
             strokeWidth: 0.5,
             stroke: '#232323',
+            strokeLineCap: "round"
         });
         ui.machine.lineLeft = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
             left: 0,
             top: 0,
             strokeWidth: 0.5,
             stroke: '#232323',
+            strokeLineCap: "round"
         });
+        ui.machine.lineLeft.set({
+            'x1': +0.5,
+        })
         ui.canvas.add(ui.machine.lineRight);
         ui.canvas.add(ui.machine.lineLeft);
 
         ui.machine.lineRightBelt = new fabric.Line([machine.motors.rightPosPx.x, machine.motors.rightPosPx.y, 0, 0], {
             left: 0,
             top: 0,
-            strokeWidth: 1,
+            strokeWidth: .5,
             stroke: '#232323',
+            strokeLineCap: "round"
         });
         ui.machine.lineLeftBelt = new fabric.Line([machine.motors.leftPosPx.x, machine.motors.leftPosPx.y, 0, 0], {
-            left: -0,
-            top: -0,
-            strokeWidth: 1,
+            left: 0,
+            top: 0,
+            strokeWidth: .5,
             stroke: '#232323',
+            strokeLineCap: "round",
+
         });
+        ui.machine.lineLeftBelt.set({
+            'x1': -0.5,
+            'x2': -0.5,
+        })
         ui.canvas.add(ui.machine.lineRightBelt);
         ui.canvas.add(ui.machine.lineLeftBelt);
 
@@ -774,9 +784,10 @@ var Polargraph = (function() {
             });
 
         dom.get("#serial_connections").on("click", ".button", function() {
-            if (serial.port !== null) {
-                serial.port.close();
-            }
+            // console.log(serial.port)
+            // if (serial.port !== null) {
+            //     serial.port.close();
+            // }
 
             statusIcon.element.html(statusIcon.error);
 
@@ -956,18 +967,29 @@ var Polargraph = (function() {
     var DisableWorkspace = function() {
         dom.get("#dimmerEl").addClass("active");
     }
+
     var DrawGrid = function() {
-        let offset = -200;
+        // Borro la grid anterior
+        let myItems = ui.canvas.getObjects();
+        for (let i = 0; i < myItems.length; i++) {
+            if (myItems[i].isGrid) {
+                ui.canvas.remove(myItems[i]);
+            }
+        }
+
+        let _distance = preferences.get("gridSize") * 10 * factors.mmToPx;
+        let offset = _distance * -5;
+        let _size = Math.max(ui.machine.squareBounds.width, ui.machine.squareBounds.height) * 2;
         options = {
-                isGrid: true,
-                distance: 20,
-                width: ui.canvas.width,
-                height: ui.canvas.height,
+                distance: _distance,
+                width: _size,
+                height: _size,
                 param: {
                     stroke: '#4c5669',
-                    strokeWidth: 1,
-                    selectable: false
-                }
+                    strokeWidth: 0.5,
+                    selectable: false,
+                    isGrid: true,
+                },
             },
             gridLen = (options.width / options.distance) + 1;
 
@@ -994,12 +1016,6 @@ var Polargraph = (function() {
     var resizeCanvas = function() {
         ui.canvas.setHeight($('#canvasSizer').height());
         ui.canvas.setWidth($('#canvasSizer').width());
-
-        // let offX = (ui.canvas.width - ui.machine.squareBounds.width) / 2;
-        // let offY = (ui.canvas.height - ui.machine.squareBounds.height) / 2;
-        //
-        // ui.canvas.viewportTransform[4] = offX;
-        // ui.canvas.viewportTransform[5] = offY;
         ui.canvas.requestRenderAll();
     }
 
@@ -1154,7 +1170,6 @@ var Polargraph = (function() {
                 break;
         }
         // end parse response
-
         if (currentString == lastReceivedString) {
             let lastLog = dom.get(".log:last-child");
             let repetitions = lastLog.data("repeated");
@@ -1240,11 +1255,14 @@ var Polargraph = (function() {
         }, function(err) {
             if (err) {
                 console.log("error conneting to " + path, err);
+                dom.get("#connected_to").html("...");
+                // if(serial.port.isOpen){
+                //     serial.port.close();
+                // }
                 ListSerialPorts();
-
             } else {
                 serialPathConnected = path;
-                usbDetect.stopMonitoring()
+                dom.get("#connected_to").html(serialPathConnected);
             }
         });
 
@@ -1252,7 +1270,7 @@ var Polargraph = (function() {
             delimiter: '\r\n'
         }))
         serial.parser.on('data', SerialReceive);
-        dom.get("#connected_to").html(path);
+
         return true;
     }
 
@@ -1279,29 +1297,31 @@ var Polargraph = (function() {
             left: machine.motors.rightPosPx.x
         })
         ui.machine.lineRight.set({
-            'x1': machine.motors.rightPosPx.x,
+            'x1': machine.motors.rightPosPx.x - .5,
             'y1': 0
         })
         ui.machine.lineRightBelt.set({
-            'x1': machine.motors.rightPosPx.x + 1,
-            'x2': machine.motors.rightPosPx.x + 1,
+            'x1': machine.motors.rightPosPx.x + .5,
+            'x2': machine.motors.rightPosPx.x + .5,
             'y1': 0
         })
 
         ui.machine.squareBounds.set({
-            'width': machine.motors.rightPosPx.x,
+            'width': machine.motors.rightPosPx.x +1,
             'height': machine.heightMM * factors.mmToPx
         });
 
         factors.pxPerStep = machine.widthSteps / machine.motors.rightPosPx.x;
         factors.stepPerPx = machine.motors.rightPosPx.x / machine.widthSteps;
 
-        console.log("last pen pos", preferences.get("lastPenPos"))
+        DrawGrid();
 
+        // ui.machine.squareBounds.bringToFront()
         ui.machine.lineRight.bringToFront()
         ui.machine.lineLeft.bringToFront()
         ui.machine.lineRightBelt.bringToFront()
         ui.machine.lineLeftBelt.bringToFront()
+        ui.clippingRect.bringToFront();
 
         // TODO: if setting to auto-set home to last position
         if (preferences.get('autoSetHome')) {
@@ -1309,13 +1329,10 @@ var Polargraph = (function() {
             SetPenPositionPixels(savedPenPos.x, savedPenPos.y)
         }
 
-
         ui.canvasNeedsRender = true;
         resizeCanvas();
         centerCameraAndZoom();
         dom.get('canvas').removeClass('hidden');
-
-        DrawGrid();
     }
     var SetPenPositionPixels = function(_x, _y) {
         ui.penPositionPixels.x = _x;
@@ -1456,7 +1473,6 @@ var Polargraph = (function() {
             })
         }
 
-
         statusIcon.element.html(statusIcon.success);
         machine.isReady = true;
         if (!batchCompleted) {
@@ -1468,7 +1484,6 @@ var Polargraph = (function() {
                 _UpdateBatchPercent();
             }
         }
-
     }
 
     // *******
@@ -1643,7 +1658,7 @@ var Polargraph = (function() {
         $('.ui.basic.modal').modal('hide');
         _SerialSend("C26,END");
         console.log(`Succesfully connected ✏️ to Polargraph`);
-        settings.set('serial-path', serialPathConnected); // save in local config
+        preferences.set('serialPath', serialPathConnected); // save in local config
     }
     var codeError = "";
     var codeStr;
@@ -1725,6 +1740,10 @@ var Polargraph = (function() {
     ipc.on('togglePauseQueue', function(event, data) {
         dom.get('#pause-queue').click();
     });
+    ipc.on('quittingApp', function(event,data){
+        usbDetect.stopMonitoring()
+        // serial.port.close();
+    })
 
 
     // Public Stuff
@@ -1757,7 +1776,12 @@ var Polargraph = (function() {
             percent: batchPercent,
             done: batchDone,
             total: batchTotal
-        }
+        },
+        redrawGrid: function(size=5){
+            _gridCentimeterWidth = size
+            DrawGrid();
+        },
+
     };
 
 })();
@@ -1800,6 +1824,18 @@ var vue = new Vue({
         }
     },
     computed: {
+        gridSize: {
+            get: function() {
+                return Polargraph.preferences.get("gridSize");
+            },
+            set: function(e) {
+                let val = parseFloat(e);
+                val = Math.max(1, val);
+                val = Math.min(99, val);
+                Polargraph.redrawGrid(parseFloat(val))
+                return Polargraph.preferences.set("gridSize",val);
+            },
+        },
         clipperWidth: {
             get: function() {
                 if (Polargraph.ui.clippingRect) {
@@ -1979,8 +2015,6 @@ window.addEventListener('load', function() {
 
     Polargraph.ui.canvas.add(_sketchGroup);
 }, false);
-
-
 
 
 function map(x, in_min, in_max, out_min, out_max) {

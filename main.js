@@ -196,6 +196,7 @@ function ToggleDevTools() {
 
 app.on('will-quit', () => {
     console.log('users tries to quit');
+    contents.send('quittingApp');
     // Unregister all shortcuts.
     // globalShortcut.unregisterAll()
 })

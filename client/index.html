@@ -71,16 +71,16 @@
 						<div id="content-control">
 							<div class="ui fluid vertical labeled icon buttons">
 
-								<button class="ui button deactivateToggle disabled" id="set-home-postion">
+								<!-- <button class="ui button deactivateToggle disabled" id="set-home-postion">
 									<i class="heart icon"></i>Set Default Home
-								</button>
+								</button> -->
 
 								<button class="ui teal button myToggle" id="set-custom-postion">
-									<i class="map icon"></i>Set Custom Home
+									<i class="heart icon"></i>Set Home
 								</button>
 
 								<button class="ui button myToggle disabled" id="control-pen-position">
-									<i class="bug icon"></i>Control Pen Position
+									<i class="compass outline icon"></i>Control Pen Position
 								</button>
 
 								<button class="ui button deactivateToggle disabled" id="return-home">
@@ -88,11 +88,11 @@
 								</button>
 
 								<button class="ui button mypopup deactivateToggle" id="pen-lift" data-html="<div class='header'>Pen Lift</div><div class='content'><pre>C14,UP,END</pre>Moves the pen lift servo motor into the up, raised, or lifted position. The parameter behaves in the same way as C13.</div>">
-									<i class="pencil icon"></i>Pen Lift
+									<i class="chevron circle up icon"></i>Pen Lift
 								</button>
 
 								<button class="ui button mypopup deactivateToggle" id="pen-drop" data-html="<div class='header'>Pen Drop</div><div class='content'><pre>C13,DOWN,END</pre>oves the pen lift servo motor into the down, lowered, or drawing position, with the pen tip against the page. The machine has a set up position saved in EEPROM, but given an integer parameter, it moves the servo to that position instead, and will use that position as up until the machine is next reset - even if it is not stated explicitly on subsequent C13 calls. Use C45 to save specific lift servo positions to EEPROM.</div>">
-									<i class="map pin icon"></i>Pen Drop
+									<i class="pencil icon"></i>Pen Drop
 								</button>
 
 
@@ -394,7 +394,7 @@
 
 							<div class="ui divider"></div>
 							<h5>Serial</h5>
-							<p>Connected to <span id="connected_to"></span></p>
+							<p>Connected to <span id="connected_to">...</span></p>
 							<button class="ui mini labeled icon button serial_reconnect">
 								<i class="road icon"></i>
 								New Connection
@@ -409,10 +409,17 @@
 								</div>
 							</div>
 
-							<div>
+							<div style="margin-top:10px">
 								<div class="ui checkbox">
 									<input id="autoSetHome" type="checkbox" v-model="autoSetHome">
 									<label for="autoSetHome">Set Home Position on Startup </label><small>(Melt will remember the last place your pen was)</small>
+								</div>
+							</div>
+
+							<div style="margin-top:10px">
+								<div class="field">
+									<label>Grid Size (cm)</label>
+									<input type="number" v-model="gridSize" style="width:50px" min="1" max="99">
 								</div>
 							</div>
 
@@ -456,12 +463,10 @@
 						<canvas id="myCanvas" class="hidden"></canvas>
 					</div>
 					<div id="canvasMetaData">
-						X: <span class="x"></span>,
-						Y: <span class="y"></span><br />
-						X: <span class="xmm"></span> mm,
-						Y: <span class="ymm"></span> mm<br />
-						L Motor: <span class="lmotomm"></span> mm, <span class="lmotosteps"></span> steps<br />
-						R Motor: <span class="rmotomm"></span> mm, <span class="rmotosteps"></span> steps<br />
+						millimeters X: <span class="xmm"></span>, Y: <span class="ymm"></span><br />
+						pixels X: <span class="x"></span>,Y: <span class="y"></span><br />
+						Belt Length Left: <span class="lmotomm"></span> mm, <span class="lmotosteps"></span> steps<br />
+						Belt Length Right: <span class="rmotomm"></span> mm, <span class="rmotosteps"></span> steps<br />
 					</div>
 
 
@@ -469,10 +474,7 @@
 			</div> <!-- six wide col -->
 
 
-
-
 		</div> <!-- ui grid -->
-
 
 
 		<!-- Serial connection modal -->

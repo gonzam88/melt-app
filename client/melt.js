@@ -148,8 +148,8 @@ var Polargraph = (function() {
         stepPerPx: null
     };
     var statusIcon = {
-        error: '<i class="statuserror small exclamation circle icon"></i>',
-        success: '<i class="statusok small check circle icon"></i>',
+        error: '<i class="statuserror exclamation circle icon"></i>',
+        success: '<i class="statusok check circle icon"></i>',
         working: '<i class="statusworking notched circle loading icon"></i>',
         element: $("statusAlert")
     };
@@ -1195,9 +1195,9 @@ var Polargraph = (function() {
     var WriteConsole = function(txt, received = false) {
         let icon, clase = "log";
         if (received) {
-            icon = '<i class="caret down icon receivedCmd"></i>';
+            icon = '';
         } else {
-            icon = '<i class="caret up icon sentCmd"></i>';
+            icon = '<i class="caret right icon sentCmd"></i>';
         }
         txt = '<span class="content">' + txt + '</span>';
 

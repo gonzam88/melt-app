@@ -36,6 +36,7 @@ h2 .content, .ui.header .sub.header {
 
 .columnsContainer {
     padding: 10px !important;
+    margin-top: 0px !important;
 }
 
 .dashboardMenuContent {
@@ -46,7 +47,7 @@ h2 .content, .ui.header .sub.header {
 .dashboardElement {
     background-color: #3A4251;
     border-radius: 5px;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 70px);
     padding: 10px;
 }
 
@@ -106,7 +107,7 @@ h2 .content, .ui.header .sub.header {
 #queue {
     font-family: 'Inconsolata', monospace;
     margin-bottom: 10px;
-    height: calc(100% - 125px);
+    height: calc(100% - 105px);
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
@@ -121,12 +122,13 @@ h2 .content, .ui.header .sub.header {
 }
 
 #queue-progress {
-    margin-top: 8px;
+    margin-top: -18px;
+    margin-bottom: 0;
 }
 
 #elapsed-time {
     position: relative;
-    bottom: 48px;
+    bottom: 16px;
     left: 5px;
     font-size: 10px;
     pointer-events: none;
@@ -452,4 +454,7 @@ label:hover {
 
 .hidden {
     display: none;
+}
+#bottom{
+    padding: 5px 10px 0 10px;
 }

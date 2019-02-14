@@ -24,7 +24,7 @@
 	<div id="app">
 
 		<div v-if="polargraph.ui.operatingSystem != 'windows'" id="electron-titlebar" class="drag"></div>
-
+<!--
 		<div class="ui grid">
 			<div class="three column row" style="padding-bottom:0px">
 				<div class="left floated column">
@@ -38,7 +38,7 @@
 							</div>
 						</h2>
 
-					</div><!-- headerContainer -->
+					</div>
 				</div>
 
 				<div class="column"></div>
@@ -52,7 +52,7 @@
 				</div>
 			</div>
 
-		</div>
+		</div> -->
 
 		<div class="ui stackable equal height grid columnsContainer">
 			<div id="leftColumn" class="six wide column">
@@ -235,13 +235,6 @@
 								<a id="pause-queue" class="ui labeled icon tiny button"><i class="pause icon"></i>Pause</a>
 								<a id="clear-queue" class="ui labeled icon tiny button"><i class="trash icon"></i>Clear</a>
 
-								<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
-									<div class="bar">
-										<!-- <div class="progress"></div> -->
-										<!-- uncommenting this would overlay the percent numer -->
-									</div>
-								</div><!-- progress bar -->
-								<div id="elapsed-time"></div>
 							</div>
 
 						</div>
@@ -476,6 +469,45 @@
 
 		</div> <!-- ui grid -->
 
+		<div class="ui grid" id="bottom">
+			<div class="three column row">
+				<div class="left floated column">
+					<!--  Left footer -->
+					<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
+						<div class="bar">
+							<!-- <div class="progress"></div> -->
+							<!-- uncommenting this would overlay the percent numer -->
+						</div>
+					</div><!-- progress bar -->
+					<div id="elapsed-time"></div>
+
+					<!-- <div class="headerContainer">
+
+						<h2 class="ui header">
+							<i class="fire icon"></i>
+							<div class="content">Melt
+								<div class="sub header">a Polargraph Controller</div>
+							</div>
+						</h2>
+
+					</div> -->
+				</div>
+
+				<div class="column">
+					<!-- Middle footer -->
+				</div>
+
+				<div class="right floated column statusContainer">
+					<!-- Right footer -->
+					<div class="status">
+						<span id="statusAlert">
+							<i class="statuserror exclamation circle icon"></i>
+						</span>
+					</div>
+				</div>
+			</div>
+
+		</div>
 
 		<!-- Serial connection modal -->
 		<div class="ui basic modal">

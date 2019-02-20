@@ -122,14 +122,15 @@ h2 .content, .ui.header .sub.header {
 }
 
 #queue-progress {
+    margin-bottom: 0px;
 }
 
 #elapsed-time {
-    position: relative;
-    bottom: 16px;
-    left: 5px;
-    font-size: 10px;
-    pointer-events: none;
+  position: relative;
+  left: 5px;
+  font-size: 10px;
+  pointer-events: none;
+  top: -16px;
 }
 
 .log {

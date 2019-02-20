@@ -75,11 +75,11 @@
 									<i class="heart icon"></i>Set Default Home
 								</button> -->
 
-								<button class="ui teal button myToggle" id="set-custom-postion">
+								<button class="ui teal button myToggle" id="set-custom-postion" data-helper="Set a home position for gondola. Will show be shown as 💙">
 									<i class="heart icon"></i>Set Home
 								</button>
 
-								<button class="ui button myToggle disabled" id="control-pen-position">
+								<button class="ui button myToggle disabled" id="control-pen-position" data-helper="Click to move the gondola to that position">
 									<i class="compass outline icon"></i>Control Pen Position
 								</button>
 
@@ -87,11 +87,11 @@
 									<i class="undo icon"></i>Return Home
 								</button>
 
-								<button class="ui button mypopup deactivateToggle" id="pen-lift" data-html="<div class='header'>Pen Lift</div><div class='content'><pre>C14,UP,END</pre>Moves the pen lift servo motor into the up, raised, or lifted position. The parameter behaves in the same way as C13.</div>">
+								<button class="ui button mypopup deactivateToggle" id="pen-lift" data-helper="Moves the pen lift servo motor into the up, raised, or lifted position. The parameter behaves in the same way as C13. Command: C14,UP,END">
 									<i class="chevron circle up icon"></i>Pen Lift
 								</button>
 
-								<button class="ui button mypopup deactivateToggle" id="pen-drop" data-html="<div class='header'>Pen Drop</div><div class='content'><pre>C13,DOWN,END</pre>oves the pen lift servo motor into the down, lowered, or drawing position, with the pen tip against the page. The machine has a set up position saved in EEPROM, but given an integer parameter, it moves the servo to that position instead, and will use that position as up until the machine is next reset - even if it is not stated explicitly on subsequent C13 calls. Use C45 to save specific lift servo positions to EEPROM.</div>">
+								<button class="ui button mypopup deactivateToggle" id="pen-drop" data-helper="Moves the pen lift servo motor into the drawing position. Use C45 to save specific lift servo positions to EEPROM. Command C13,DOWN,END">
 									<i class="pencil icon"></i>Pen Drop
 								</button>
 
@@ -157,18 +157,18 @@
 
 								<div class="ui fluid vertical labeled icon buttons">
 									<!-- Free Draw -->
-									<button class="ui button myToggle" id="tools-free-draw">
+									<button class="ui button myToggle" id="tools-free-draw" data-helper="Draw directly on the preview, polargraph will follow">
 										<i class="paint brush icon"></i>Free Drawing
 									</button>
 
 									<!-- code -->
-									<button class="ui button deactivateToggle" id="reveal-code">
+									<button class="ui button deactivateToggle" id="reveal-code" data-helper="🎼 code code code code code 🎶">
 										<i class="code icon"></i>Code
 									</button>
 
 
 									<!-- move -->
-									<button class="ui button myToggle" id="keyboard-control">
+									<button class="ui button myToggle" id="keyboard-control" data-helper="Control using arrow keys. Spacebar toggles up/down position">
 										<i class="keyboard icon"></i> Keyboard Control
 									</button>
 
@@ -244,7 +244,21 @@
 
 							<h5>Machine</h5>
 
-							<div class="ui fluid right labeled input mypopup" data-html="<div class='header'>Set Machine Size</div><div class='content'><pre>C24,[width],[height],END</pre>Sets the machine's dimensions in millimetres.</div>">
+							<div class="ui fluid buttons">
+								<button class="ui button" id="uploadMachineConfig"><i class="upload icon"></i> Upload</button>
+								<button class="ui disabled button"><i class="download icon"></i> Download</button>
+							</div>
+
+							<div class="ui fluid buttons">
+								<button class="ui button" id="saveMachineConfig"><i class="save icon"></i> Save</button>
+								<button class="ui button" id="saveAsMachineConfig"><i class="save outline icon"></i> Save As...</button>
+								<button class="ui button" id="loadMachineConfig"><i class="folder open icon"></i> Load</button>
+							</div>
+							<label>{{ Polargraph.ui.machineConfigFile.filepath }}</label>
+
+							<div style="height:20px"></div>
+
+							<div class="ui fluid right labeled input mypopup" data-helper="Set Machine width in millimeters. Command: C24,[width],[height],END">
 								<div class="ui basic label">Machine Width (mm)</div>
 								<input type="number" placeholder="1200" id="inputMachineWidth" v-model="polargraph.machine.widthMM">
 							</div>
@@ -361,21 +375,6 @@
 							</div>
 
 
-							<div class="ui divider"></div>
-
-							<h5>Machine Configuration</h5>
-
-							<div class="ui fluid buttons">
-								<button class="ui button" id="uploadMachineConfig"><i class="upload icon"></i> Upload</button>
-								<button class="ui disabled button"><i class="download icon"></i> Download</button>
-							</div>
-
-							<h5>Configuration File <label>{{ Polargraph.ui.machineConfigFile.filepath }}</label></h5>
-							<div class="ui fluid buttons">
-								<button class="ui button" id="saveMachineConfig"><i class="save icon"></i> Save</button>
-								<button class="ui button" id="saveAsMachineConfig"><i class="save outline icon"></i> Save As...</button>
-								<button class="ui button" id="loadMachineConfig"><i class="folder open icon"></i> Load</button>
-							</div>
 
 							<div class="ui divider"></div>
 
@@ -470,10 +469,10 @@
 		</div> <!-- ui grid -->
 
 		<div class="ui grid" id="bottom">
-			<div class="three column row">
+			<div class="three column row" style="padding: 0">
 				<div class="left floated column">
 					<!--  Left footer -->
-					<div id="queue-progress" class="ui small teal progress mypopup" data-html="">
+					<div id="queue-progress" class="ui small teal progress mypopup">
 						<div class="bar">
 							<!-- <div class="progress"></div> -->
 							<!-- uncommenting this would overlay the percent numer -->
@@ -495,6 +494,7 @@
 
 				<div class="column">
 					<!-- Middle footer -->
+					<div class="helper" v-cloak>{{helper}}</div>
 				</div>
 
 				<div class="right floated column statusContainer">

@@ -30,6 +30,50 @@ var parseSVG = require('svg-path-parser');
 
 var lineclip = require('lineclip');
 
+
+
+// const analytics = new Analytics('UA-XXXXXXXX-X', {
+//   userId: '123456',
+//   language: () => remote.getGlobal('sharedData').lang
+
+// const analytics;
+
+// (async () => {
+// 	// console.log(await osLocale());
+//     let x =  osLocale();
+//     console.log(x)
+// 	analytics = new Analytics('UA-134548895-1', {
+//         userId: '123456',
+//         language: () => store.getState().language,
+//         protocolVersion
+//         // trackId
+//         // clientId
+//         // userId - undefined by default
+//         // appName
+//         // appVersion
+//         // language
+//         // userAgent
+//         // viewport
+//         // screenResolution
+//     });
+// })();
+
+//
+// const analytics = new Analytics('UA-XXXXXXXX-X', {
+//   userId: '123456',
+//   language: () => store.getState().language,
+//   protocolVersion
+// trackId
+// clientId
+// userId - undefined by default
+// appName
+// appVersion
+// language
+// userAgent
+// viewport
+// screenResolution
+// });
+
 window.onerror = ErrorLog;
 
 function ErrorLog(msg, url, line) {
@@ -77,6 +121,8 @@ function p(txt) {
     // just a lazy shortcut
     console.log(txt);
 }
+
+
 
 
 var Polargraph = (function() {
@@ -705,6 +751,14 @@ var Polargraph = (function() {
         });
     }
     var _uiInit = function() {
+
+        $('div, button').hover(function(){
+            if($(this).data("helper")){
+                vue.helper = $(this).data("helper");
+            }
+        }, function(){
+            vue.helper = "";
+        })
 
         $('.ui.dropdown').dropdown();
         dom.get("#sketchToggle").click(function() {
@@ -1756,6 +1810,7 @@ var Polargraph = (function() {
     })
 
 
+
     // Public Stuff
     return {
         init: function() {
@@ -1803,6 +1858,7 @@ var vue = new Vue({
     data: {
         polargraph: Polargraph, // Synced with polargraph vars and funcs
         clippingSizeName: Polargraph.preferences.get("clipping.sizeName"),
+        helper: ""
     },
     methods: {
         insertCode: function(code) {

@@ -122,8 +122,6 @@ h2 .content, .ui.header .sub.header {
 }
 
 #queue-progress {
-    margin-top: -18px;
-    margin-bottom: 0;
 }
 
 #elapsed-time {
@@ -198,9 +196,9 @@ h2 .content, .ui.header .sub.header {
 .status {
     left: 0px;
     position: absolute;
-    bottom: 5px;
-    right: 25px;
+    right: 15px;
     text-align: right;
+    top: -4px;
 }
 
 #statusAlert i {
@@ -455,6 +453,37 @@ label:hover {
 .hidden {
     display: none;
 }
-#bottom{
-    padding: 5px 10px 0 10px;
+
+#bottom {
+    padding: 0px 10px 0 10px;
+    height: 30px;
+    margin-top: 5px;
+}
+
+.ui.basic.label {
+    border: none;
+    color: #e0e1e2;
+    background: none;
+}
+
+.ui.input>input, .ui.form input[type=number],.ui.selection.dropdown {
+    background: none #2d353f;
+    color: white;
+}
+
+select {
+    background: none #2d353f;
+    color: white;
+    border: none;
+    height: 30px;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+.helper{
+    position: relative;
+    bottom: 4px;
+    font-size: x-small;
 }

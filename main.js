@@ -1,16 +1,20 @@
+const electron = require('electron')
 const {
     app,
     BrowserWindow,
     Menu,
     MenuItem,
     ipcMain
-} = require('electron')
+    } = electron
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var win, contents;
 global.sharedData = {
-    os: null
+    os: null,
+    lang: null,
+    screenWidth: null,
+    screenHeight: null,
 };
 
 function createWindow() {
@@ -48,6 +52,11 @@ function createWindow() {
             sharedData.os = "linux";
     }
 
+    sharedData.lang = app.getLocale()
+
+    const { screenWidth, screenHeight } = electron.screen.getPrimaryDisplay().workAreaSize
+    sharedData.screenWidth = screenWidth;
+    sharedData.screenHeight = screenHeight;
 
     win = new BrowserWindow(configuration);
 
@@ -183,6 +192,7 @@ function createWindow() {
     ]
 
     Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+
 } // create window
 
 

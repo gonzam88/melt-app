@@ -13,7 +13,9 @@ Run any of these to control de plotter from code. You can use the included edito
 ### Line
 `line(x1, y1, x2, y2)`
 ### Ellipse
-`ellipse(x, y, radio)`
+`ellipse(x, y, radio, resolution = 100)`
+
+Resolution is an optional parameter. A lower number will draw faster will less faces. Can also be used to draw an hexagon if set to 6, triangle if 3, etc.
 ### Shape
 `beginShape();`
 
@@ -30,6 +32,14 @@ Run any of these to control de plotter from code. You can use the included edito
 `to = new Victor(width, 0);`
 
 `curve(from, controlPt, to)`
+### Text
+`textSize(n);` Default: 2
+
+`textFont(fontName);` Deafult: 'futura'
+
+`text('Hello World', xPos, yPos);`
+
+Available fonts to load in textFont():  `astrology, cursive, cyrillic, futural, futuram, gothiceng, gothicger, gothicita, greek, japanese, markers, mathlow, mathupp, meteorology, music, scriptc, scripts, symbolic, timesg, timesi, timesib, timesr, timesrb`
 
 
 ## About

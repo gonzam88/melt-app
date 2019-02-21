@@ -341,6 +341,11 @@ h2 .content, .ui.header .sub.header {
 #preview-console-content {
     height: 140px;
     overflow-y: auto;
+    background: #2d353f;
+    border-radius: 3px;
+}
+#preview-console-content::-webkit-scrollbar{
+    background-color: #e8e8e8;
 }
 
 #preview-console-content>div {

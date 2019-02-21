@@ -74,7 +74,7 @@ var lineclip = require('lineclip');
 // screenResolution
 // });
 
-window.onerror = ErrorLog;
+//window.onerror = ErrorLog;
 
 function ErrorLog(msg, url, line) {
     if (url != "") return;
@@ -1729,18 +1729,24 @@ var Polargraph = (function() {
     var codeRepetitions = 1,
         remainingCodeRepetitions;
 
+    var checkForErrorsBeforeRunningCode = false;
     var CheckCode = function() {
-        if (session.getAnnotations().length == 0) {
-            codeStr = editor.getValue();
-            try {
-                EvalCode()
-            } catch (e) {
-                if (e instanceof SyntaxError) {
-                    // didnt pass try catch
-                    codeError = e;
-                    delay = 4000;
+        if(checkForErrorsBeforeRunningCode){
+            if (session.getAnnotations().length == 0) {
+                codeStr = editor.getValue();
+                try {
+                    EvalCode()
+                } catch (e) {
+                    if (e instanceof SyntaxError) {
+                        // didnt pass try catch
+                        codeError = e;
+                        delay = 4000;
+                    }
                 }
             }
+        }else{
+            codeStr = editor.getValue();
+            EvalCode()
         }
     }
 
@@ -1752,14 +1758,23 @@ var Polargraph = (function() {
             if (myItems[i].isSketch) ui.canvas.remove(myItems[i]);
         }
         showNotificationOnFinish = true;
-        win.webContents.executeJavaScript(codeStr, true)
+        //var myCode = `( console.log = yourCustomLog; function yourCustomLog(msg) {log(msg)}; ${codeStr})`;
+        var myCode = `(function(){
+                this.onerror = function(error, url, line) {
+                CodeConsole.warn(error)
+            };
+            ${codeStr}
+        })();`;
+
+        win.webContents.executeJavaScript(myCode, true)
             .then((result) => {
-                CodeConsole.log('Code Executed @ ' + new Date());
+                console.log('Code Executed @ ' + new Date());
                 // TODO: Sort queue to improve distance performance
             })
         if (machine.queue.length == 0) {
             // the code executed succesfully but theres nothing on the queue
         }
+
     }
 
     var _openExample = function(filename) {

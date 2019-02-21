@@ -1,5 +1,11 @@
 var snippets = [
     {
+        title: "Log",
+        icon: "comment outline",
+        code: "log('hi there')\n",
+        hint: "Replacement for console.log()"
+    },
+    {
         title: "Line",
         icon: "window minimize",
         code: "line(x1, y1, x2, y2);\n",

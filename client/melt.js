@@ -1117,6 +1117,7 @@ var Polargraph = (function() {
         var ace = require('brace');
         require('brace/mode/javascript');
         require('brace/keybinding/vim');
+        require('brace/ext/searchbox');
 
         editor = ace.edit('editor');
         editor.getSession().setMode('ace/mode/javascript');
@@ -1318,7 +1319,7 @@ var Polargraph = (function() {
             baudRate: 57600
         }, function(err) {
             if (err) {
-                console.log("error conneting to " + path, err);
+                console.log("👺 Error connecting to " + path, err);
                 dom.get("#connected_to").html("...");
                 // if(serial.port.isOpen){
                 //     serial.port.close();

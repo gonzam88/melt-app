@@ -12,6 +12,7 @@ Run any of these to control de plotter from code. You can use the included edito
 
 ### Line
 `line(x1, y1, x2, y2)`
+
 ### Ellipse
 `ellipse(x, y, radio, resolution = 100)`
 

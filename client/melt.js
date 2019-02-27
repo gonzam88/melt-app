@@ -273,6 +273,13 @@ var Polargraph = (function() {
         steps: null
     };
 
+    var _svgfile = {
+        url : null,
+        canvasEle : null,
+        group: [],
+        Raster: null,
+    }
+
     var session, scriptCode;
 
     var _checkVersion = function(alertIfUptoDate = false) {
@@ -402,7 +409,7 @@ var Polargraph = (function() {
     var _serialInit = function() {
         let myport = preferences.get('serialPath');
         if (myport != undefined || myport != null) {
-            SerialConnectTo(myport)
+            SerialConnectTo(myport, true)
         } else {
             ListSerialPorts();
         }
@@ -480,23 +487,6 @@ var Polargraph = (function() {
         })
         ui.canvas.add(ui.machine.squareBounds);
 
-
-
-        // ui.machine.rightCircle = new fabric.Circle({
-        //     radius: 6,
-        //     fill: 'white',
-        //     left: machine.motors.rightPosPx.x,
-        //     top: machine.motors.rightPosPx.y,
-        // });
-        // ui.machine.leftCircle = new fabric.Circle({
-        //     radius: 6,
-        //     fill: 'white',
-        //     left: machine.motors.leftPosPx.x,
-        //     top: machine.motors.rightPosPx.y,
-        // });
-        // ui.canvas.add(ui.machine.rightCircle);
-        // ui.canvas.add(ui.machine.leftCircle);
-
         let stepperPath = path.join(path.dirname(__dirname), 'extraResources', 'graphics', 'stepper-motor.png');
         fabric.Image.fromURL(stepperPath, function(instance) {
             // scale image down, and flip it, before adding it onto canvas
@@ -508,7 +498,6 @@ var Polargraph = (function() {
             ui.machine.leftCircle = instance;
         });
 
-        // ui.canvas.sendToBack(ui.machine.leftCircle)
 
         // TODO: Clone, not load again
         fabric.Image.fromURL(stepperPath, function(instance) {
@@ -752,6 +741,74 @@ var Polargraph = (function() {
     }
     var _uiInit = function() {
 
+        dom.get("#loadNewSvgFile").click(function(){
+            // Load SVG File
+            const options = {
+                defaultPath: app.getPath('documents'),
+                filters: [{
+                    name: 'Scalable Vector Graphics',
+                    extensions: ['svg']
+                }],
+                properties: ['openFile']
+            }
+
+            dialog.showOpenDialog(null, options, (paths) => {
+                if (paths !== undefined) {
+                    let file = paths[0];
+
+
+                    _svgfile.url = file;
+                    console.log("loading svg")
+                    var svgElement;
+                    _svgfile.group = [];
+
+                    fabric.loadSVGFromURL(file,function(objects,options) {
+                        svgElement = new fabric.Group(_svgfile.group);
+
+                        var sizeRatio
+                        if(svgElement.width > svgElement.height){
+                            sizeRatio = ui.machine.squareBounds.width / svgElement.width;
+                        }else{
+                            sizeRatio = ui.machine.squareBounds.height / svgElement.height;
+                        }
+
+                        svgElement.set({
+                                scaleX: sizeRatio,
+                                scaleY: sizeRatio,
+
+                                top: ui.machine.squareBounds.height/2,
+                                left: ui.machine.squareBounds.width/2,
+
+                                lockRotation: true,
+                                hasRotatingPoint: false,
+                                lockMovementX: false,
+                                lockMovementY: false,
+                                lockScalingX: false,
+                                lockScalingY: false,
+                                lockUniScaling: false,
+                                hasControls: true,
+                                selectable: true,
+                        });
+
+                        ui.canvas.add(svgElement);
+                        ui.canvas.renderAll();
+
+                        },function(item, object) {
+                            object.set('id',item.getAttribute('id'));
+                            _svgfile.group.push(object);
+
+                    });
+
+
+                }
+            });
+        })
+
+        _svgfile.Raster = function(){
+            console.log("Rastering")
+
+        }
+
         $('div, button').hover(function(){
             if($(this).data("helper")){
                 vue.helper = $(this).data("helper");
@@ -856,7 +913,7 @@ var Polargraph = (function() {
             statusIcon.element.html(statusIcon.error);
 
             portPath = $(this).data("connectto");
-            console.log("Conntecting to", portPath);
+            console.log("Connecting to", portPath);
             SerialConnectTo(portPath);
         })
 
@@ -986,6 +1043,16 @@ var Polargraph = (function() {
         dom.get("#keyboard-control").on("toggleDeselect", function() {
             ui.isKeyboardControlling = false;
             dom.get("#keyboard-control-container").hide();
+        })
+
+
+        dom.get("#load-svg").on("toggleSelect", function() {
+            ui.isKeyboardControlling = true;
+            dom.get("#load-svg-container").show();
+        })
+        dom.get("#load-svg").on("toggleDeselect", function() {
+            ui.isKeyboardControlling = false;
+            dom.get("#load-svg-container").hide();
         })
 
         // ******************
@@ -1313,17 +1380,20 @@ var Polargraph = (function() {
         });
     }
     var serialPathConnected = "";
-    var SerialConnectTo = function(path) {
+    var SerialConnectTo = function(path, autoConnecting = false) {
         // Now i actually make the connection
         serial.port = new SerialPort(path, {
             baudRate: 57600
         }, function(err) {
             if (err) {
                 console.log("👺 Error connecting to " + path, err);
+
+                if(!autoConnecting){
+                    dialog.showErrorBox("No polargraph here", "Error connecting to " + path +"\n \n"+ err);
+                }
+
                 dom.get("#connected_to").html("...");
-                // if(serial.port.isOpen){
-                //     serial.port.close();
-                // }
+
                 ListSerialPorts();
             } else {
                 serialPathConnected = path;
@@ -1862,6 +1932,7 @@ var Polargraph = (function() {
             _gridCentimeterWidth = size
             DrawGrid();
         },
+        svgfile: _svgfile,
 
     };
 
@@ -2159,6 +2230,10 @@ Object.defineProperties(this, {
         }
     }
 });
+
+var constrain = function(val, min, max){
+    return val > max ? max : val < min ? min : val;
+}
 
 //*********************
 //***** Shapes ********

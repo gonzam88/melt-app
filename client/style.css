@@ -237,7 +237,7 @@ h2 .content, .ui.header .sub.header {
     height: 100%;
 }
 
-#content-queue, #content-console, #content-tools, #content-settings, #keyboard-control-container {
+#content-queue, #content-console, #content-tools, #content-settings, #keyboard-control-container, #load-svg-container {
     display: none;
 }
 

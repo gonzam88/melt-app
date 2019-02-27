@@ -24,35 +24,6 @@
 	<div id="app">
 
 		<div v-if="polargraph.ui.operatingSystem != 'windows'" id="electron-titlebar" class="drag"></div>
-<!--
-		<div class="ui grid">
-			<div class="three column row" style="padding-bottom:0px">
-				<div class="left floated column">
-
-					<div class="headerContainer">
-
-						<h2 class="ui header">
-							<i class="fire icon"></i>
-							<div class="content">Melt
-								<div class="sub header">a Polargraph Controller</div>
-							</div>
-						</h2>
-
-					</div>
-				</div>
-
-				<div class="column"></div>
-
-				<div class="right floated column statusContainer">
-					<div class="status">status
-						<span id="statusAlert">
-							<i class="statuserror small exclamation circle icon"></i>
-						</span>
-					</div>
-				</div>
-			</div>
-
-		</div> -->
 
 		<div class="ui stackable equal height grid columnsContainer">
 			<div id="leftColumn" class="six wide column">
@@ -172,10 +143,16 @@
 										<i class="keyboard icon"></i> Keyboard Control
 									</button>
 
+									<!-- svg -->
+									<button class="ui button myToggle" id="load-svg" data-helper="Draw SVG file. Position and print.">
+										<i class="file image outline icon"></i> SVG
+									</button>
+
 								</div><!-- fluid buttons -->
 
 
 								<div id="keyboard-control-container">
+									<div style="margin-top:5px"/></div>
 									<!-- <div class="ui segment"> -->
 
 									<h4>Steps</h4>
@@ -203,6 +180,19 @@
 									</div>
 
 									<!-- </div> -->
+								</div>
+
+
+								<!-- SVG  -->
+								<div id="load-svg-container">
+									<div style="margin-top:10px"/></div>
+									<button class="ui button" id="loadNewSvgFile"><i class="folder open outline icon"></i> Open New</button>
+
+									<label>{{polargraph.svgfile.url}}</label>
+									<br /><br />
+									<button class="ui button" id="svg-rasgerize" onclick="Polargraph.svgfile.Raster()"><i class="magic icon"></i> Rasterize</button>
+									<br /><br />
+									<button class="ui button" id="svg-rasgerize-draw" onclick="Polargraph.svgfile.Raster()"><i class="pencil icon"></i> Draw</button>
 								</div>
 
 

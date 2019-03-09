@@ -46,6 +46,7 @@
         "send": ">=0.11.1",
         "serialport": "^7.1.0",
         "svg-path-parser": "^1.1.0",
+        "transformation-matrix": "^1.15.1",
         "usb-detection": "^4.1.0",
         "victor": "^1.1.0"
     },

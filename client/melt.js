@@ -31,6 +31,10 @@ var parseSVG = require('svg-path-parser');
 var lineclip = require('lineclip');
 
 
+// import {scale, rotate, translate, compose, applyToPoint} from 'transformation-matrix';
+// let {scale, rotate, translate, compose, applyToPoint} = window.TransformationMatrix;
+let {scale, rotate, translate, compose, applyToPoint} = require('transformation-matrix')
+
 
 // const analytics = new Analytics('UA-XXXXXXXX-X', {
 //   userId: '123456',
@@ -756,7 +760,6 @@ var Polargraph = (function() {
                 if (paths !== undefined) {
                     let file = paths[0];
 
-
                     _svgfile.url = file;
                     console.log("loading svg")
                     var svgElement;
@@ -765,7 +768,7 @@ var Polargraph = (function() {
                     fabric.loadSVGFromURL(file,function(objects,options) {
                         svgElement = new fabric.Group(_svgfile.group);
 
-                        var sizeRatio
+                        var sizeRatio;
                         if(svgElement.width > svgElement.height){
                             sizeRatio = ui.machine.squareBounds.width / svgElement.width;
                         }else{
@@ -775,22 +778,26 @@ var Polargraph = (function() {
                         svgElement.set({
                                 scaleX: sizeRatio,
                                 scaleY: sizeRatio,
-
+                                //
                                 top: ui.machine.squareBounds.height/2,
                                 left: ui.machine.squareBounds.width/2,
 
-                                lockRotation: true,
-                                hasRotatingPoint: false,
+                                lockRotation: false,
+                                hasRotatingPoint: true,
                                 lockMovementX: false,
                                 lockMovementY: false,
                                 lockScalingX: false,
                                 lockScalingY: false,
                                 lockUniScaling: false,
                                 hasControls: true,
-                                selectable: true,
+                                selectable: true
                         });
-
-                        ui.canvas.add(svgElement);
+                        if(_svgfile.canvasEle){
+                            // Remove previous obj
+                            ui.canvas.remove(_svgfile.canvasEle);
+                        }
+                        _svgfile.canvasEle = svgElement;
+                        ui.canvas.add(_svgfile.canvasEle);
                         ui.canvas.renderAll();
 
                         },function(item, object) {
@@ -805,7 +812,87 @@ var Polargraph = (function() {
         })
 
         _svgfile.Raster = function(){
-            console.log("Rastering")
+            // I'm using the Raphael library to parse the SVG Paths into an array of points
+            // Let me know if there's a better/lighter/faster library to do this :)
+
+
+            //Borro el canvas
+            let myItems = ui.canvas.getObjects();
+            for (let i = 0; i < myItems.length; i++) {
+                if (myItems[i].isSketch) ui.canvas.remove(myItems[i]);
+            }
+
+            let transformMatrix = _svgfile.canvasEle.calcTransformMatrix();
+            var matrix = {
+                a: transformMatrix[0],
+                b: transformMatrix[1],
+                c: transformMatrix[2],
+                d: transformMatrix[3],
+                e: transformMatrix[4],
+                f: transformMatrix[5]
+            };
+
+            // matrix.scale(3.8);
+
+            // var object = _svgfile.canvasEle.toObject();
+
+            domDarser = new DOMParser();
+            xmlDoc = domDarser.parseFromString(_svgfile.canvasEle.toSVG(),"text/xml");
+
+
+            var paths = xmlDoc.getElementsByTagName("path");
+
+            for(let i = 0; i < paths.length; i++){
+                var path_str = paths[i].getAttribute("d");
+
+                beginShape();
+                for (var c = 0; c < Raphael.getTotalLength(path_str); c += 100) {
+                    var point = Raphael.getPointAtLength(path_str, c);
+                    var tpoint = applyToPoint(matrix, point);
+                    vertex( (tpoint.x * 4) ,
+                            (tpoint.y * 4) );
+                }
+                endShape();
+            }
+
+
+
+            console.log("rastered")
+
+            //
+            // for(let i = 0; i < object.objects.length; i++){
+            //     for(let j = 0; j < object.objects[i].path.length; j++){
+            //
+            //         let command = object.objects[i].path[j];
+            //         switch(command[0].toUpperCase()){
+            //             case "M":
+            //
+            //             break;
+            //
+            //             case "L":
+            //             break;
+            //
+            //             case "Q"
+            //             break;
+            //
+            //             case "M":
+            //             break;
+            //
+            //             case "T":
+            //             break;
+            //
+            //             default:
+            //                 console.log("Comando SVG no encontrado: " + command[0]);
+            //             break;
+            //         }
+            //
+            //
+            //
+            //     } // j
+            // } // i
+
+
+
 
         }
 

@@ -832,28 +832,188 @@ var Polargraph = (function() {
                 f: transformMatrix[5]
             };
 
+            let matrixScale = scale(4,4);
+            matrix = compose([matrix,matrixScale]);
+
             // matrix.scale(3.8);
 
-            // var object = _svgfile.canvasEle.toObject();
-
-            domDarser = new DOMParser();
-            xmlDoc = domDarser.parseFromString(_svgfile.canvasEle.toSVG(),"text/xml");
+            var obj = _svgfile.canvasEle.toObject();
+            console.log(obj);
 
 
-            var paths = xmlDoc.getElementsByTagName("path");
+            for(let i = 0; i < obj.objects.length; i++ ){
+                let type = obj.objects[i].type;
+                switch (type){
 
-            for(let i = 0; i < paths.length; i++){
-                var path_str = paths[i].getAttribute("d");
+                    case "circle":
+                    break;
 
-                beginShape();
-                for (var c = 0; c < Raphael.getTotalLength(path_str); c += 100) {
-                    var point = Raphael.getPointAtLength(path_str, c);
-                    var tpoint = applyToPoint(matrix, point);
-                    vertex( (tpoint.x * 4) ,
-                            (tpoint.y * 4) );
+                    case "rect":
+                    break;
+
+                    case "line":
+                        let from = [obj.objects[i].x1,obj.objects[i].y1];
+                        let to   = [obj.objects[i].x2,obj.objects[i].y2];
+
+                        from[0] += obj.objects[i].left;
+                        to[0]   += obj.objects[i].left;
+                        from[1] += obj.objects[i].top;
+                        to[1]   += obj.objects[i].top;
+
+                        from = applyToPoint(matrix, from);
+                        to = applyToPoint(matrix, to);
+                        line(from[0], from[1], to[0], to[1]);
+
+                    break;
+
+                    case "text":
+                    break;
+
+                    case "path":
+                        var initialPoint;
+                        var lastPoint = [0,0];
+
+                        for(let j = 0; j < obj.objects[i].path.length; j++){
+                            let command = obj.objects[i].path[j];
+                            let svgLetter = command[0];
+                            // var point = [command[1]+obj.objects[i].left, command[2]+obj.objects[i].top];
+                            var point = [command[1], command[2]];
+                            // console.log("point:",point)
+                            point = applyToPoint(matrix, point);
+
+                            switch (svgLetter){
+                                case "M":
+                                    initialPoint = [point[0], point[1]]
+
+                                    beginShape();
+                                    vertex(point[0], point[1]);
+
+                                    lastPoint = [point[0], point[1]];
+                                break;
+
+                                case "L":
+                                    vertex(point[0], point[1]);
+
+                                    lastPoint = [point[0], point[1]];
+                                break;
+                                case "l":
+                                    // console.log("point",point, "last", lastPoint)
+                                    vertex(point[0]+lastPoint[0], point[1]+lastPoint[1]);
+
+                                    lastPoint = [point[0], point[1]];
+                                break;
+
+                                case "q":
+                                    // fromx = lastPoint[0];
+                                    // fromy = lastPoint[1];
+                                    // controlx = point[0] +lastPoint[0];
+                                    // controly = point[1] +lastPoint[1];
+                                    // lastPoint = [point[0], point[1]];
+                                    //
+                                    // point = [command[3], command[4]];
+                                    // point = applyToPoint(matrix, point);
+                                    // tox = point[0] +lastPoint[0];
+                                    // toy = point[1] +lastPoint[1];
+                                    // var curve = new Bezier(fromx, fromy, controlx, controly, tox, toy);
+                                    // var LUT = curve.getLUT(16); // 16 steps
+                                    //
+                                    // var points = []
+                                    //
+                                    // LUT.forEach(function(p) {
+                                    //     vertex(p.x, p.y)
+                                    // })
+                                    //
+                                    // lastPoint = [point[0], point[1]];
+
+                                    vertex(point[0]+lastPoint[0], point[1]+lastPoint[1]);
+
+                                    point = [command[3], command[4]];
+                                    // console.log("point:",point)
+                                    point = applyToPoint(matrix, point);
+                                    vertex(point[0]+lastPoint[0], point[1]+lastPoint[1]);
+
+
+                                    lastPoint = [point[0], point[1]];
+                                break;
+                                case "Q":
+                                    // fromx = lastPoint[0];
+                                    // fromy = lastPoint[1];
+                                    // controlx = point[0];
+                                    // controly = point[1];
+                                    //
+                                    // point = [command[3], command[4]];
+                                    // point = applyToPoint(matrix, point);
+                                    // tox = point[0];
+                                    // toy = point[1];
+                                    // var curve = new Bezier(fromx, fromy, controlx, controly, tox, toy);
+                                    // var LUT = curve.getLUT(16); // 16 steps
+                                    //
+                                    // var points = []
+                                    //
+                                    // LUT.forEach(function(p) {
+                                    //     vertex(p.x, p.y)
+                                    // })
+                                    //
+                                    // lastPoint = [point[0], point[1]];
+
+                                    vertex(point[0], point[1]);
+
+                                    point = [command[3], command[4]];
+                                    // console.log("point:",point)
+                                    point = applyToPoint(matrix, point);
+                                    vertex(point[0], point[1]);
+
+                                    lastPoint = [point[0], point[1]];
+                                break;
+
+                                case "T":
+
+                                    vertex(point[0], point[1]);
+
+                                    endShape();
+                                    lastPoint = [point[0], point[1]];
+                                break;
+                                case "t":
+
+                                    vertex(point[0]+lastPoint[0], point[1]+lastPoint[1]);
+
+                                    endShape();
+                                    lastPoint = [point[0], point[1]];
+                                break;
+
+                                case "Z":
+                                    vertex(initialPoint[0],initialPoint[1]);
+                                    endShape();
+                                break;
+                            }
+
+
+                        }// j
+                        endShape();
+                    break;
                 }
-                endShape();
-            }
+            }// i
+
+
+            //
+            // domDarser = new DOMParser();
+            // xmlDoc = domDarser.parseFromString(_svgfile.canvasEle.toSVG(),"text/xml");
+            //
+            //
+            // var paths = xmlDoc.getElementsByTagName("path");
+            //
+            // for(let i = 0; i < paths.length; i++){
+            //     var path_str = paths[i].getAttribute("d");
+            //
+            //     beginShape();
+            //     for (var c = 0; c < Raphael.getTotalLength(path_str); c += 100) {
+            //         var point = Raphael.getPointAtLength(path_str, c);
+            //         var tpoint = applyToPoint(matrix, point);
+            //         vertex( (tpoint.x * 4) ,
+            //                 (tpoint.y * 4) );
+            //     }
+            //     endShape();
+            // }
 
 
 
@@ -1368,6 +1528,14 @@ var Polargraph = (function() {
                     SetMachineDimensionsMM(machine.widthMM, machine.heightMM);
                 }
                 break;
+            default:
+                if(responseWords[0].startsWith("READY_")){
+                    // Example READY_200 for "norwegian pixel". Im saving the '200' value in higherVersion variable, but im not doing anything with it for now 🤷‍♂️
+                    let higherVersion = responseWords[0].split("_")[1];
+                    OnMachineReady();
+                }
+
+            break;
         }
 
         // Now check for cases where data is comma separated
@@ -2415,6 +2583,7 @@ var ellipse = function(centerX, centerY, radius, resolution = 100) {
 }
 
 
+
 var curve = function(from, control, to) {
     // from, control and to are Victor Objects
     let curve = new Bezier(from.x, from.y, control.x, control.y, to.x, to.y);
@@ -2422,11 +2591,9 @@ var curve = function(from, control, to) {
 
     var points = []
 
-    beginShape()
     LUT.forEach(function(p) {
         vertex(p.x, p.y)
     })
-    endShape()
 }
 
 var _textSize = 2;

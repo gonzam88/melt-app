@@ -13,10 +13,11 @@ Run any of these to control de plotter from code. You can use the included edito
 ### Line
 `line(x1, y1, x2, y2)`
 
-### Ellipse
+### Ellipse
 `ellipse(x, y, radio, resolution = 100)`
 
 Resolution is an optional parameter. A lower number will draw faster will less faces. Can also be used to draw an hexagon if set to 6, triangle if 3, etc.
+
 ### Shape
 `beginShape();`
 
@@ -25,6 +26,7 @@ Resolution is an optional parameter. A lower number will draw faster will less f
 `vertex(x2, y2);`
 
 `endShape();`
+
 ### Curve (Bezier)
 `from = new Victor(0, height);`
 
@@ -33,6 +35,7 @@ Resolution is an optional parameter. A lower number will draw faster will less f
 `to = new Victor(width, 0);`
 
 `curve(from, controlPt, to)`
+
 ### Text
 `textSize(n);` Default: 2
 
@@ -41,7 +44,6 @@ Resolution is an optional parameter. A lower number will draw faster will less f
 `text('Hello World', xPos, yPos);`
 
 Available fonts to load in textFont():  `astrology, cursive, cyrillic, futural, futuram, gothiceng, gothicger, gothicita, greek, japanese, markers, mathlow, mathupp, meteorology, music, scriptc, scripts, symbolic, timesg, timesi, timesib, timesr, timesrb`
-
 
 ## About
 My main goal when making Melt was to create a way to write creative code as if it were p5.js or Processing, being able to import a sketch and make minimum changes for the plotter to make the drawing. It might also be the best way for a slow, relaxed debugging.
@@ -73,7 +75,7 @@ Prerequisites: Node, npm, yarn (if you want to build)
 
 ## Hack
 
-The app structure is very basic. It´s a website wrapped by Electron. `main.js` starts the process, it´s mostly electron stuff. `client/index.html` holds the DOM elements. `client/melt.js` is where everything happens. The code is pretty straight forward, go ahead and have a happy hacking
+The app structure is very basic. It's a website wrapped by Electron. `main.js` starts the process, it's mostly electron stuff. `client/index.html` holds the DOM elements. `client/melt.js` is where everything happens. The code is pretty straight forward, go ahead and have a happy hacking.
 
 ## Use
 
